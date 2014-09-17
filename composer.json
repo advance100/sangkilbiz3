@@ -48,23 +48,13 @@
 		"yiisoft/yii2-faker": "Fixtures generator for Yii2 based on Faker lib",
 		"yiisoft/yii2-mongodb": "Use for transaction logging"
 	},
-	"scripts": {
-		"post-create-project-cmd": [
-			"yii\\composer\\Installer::postCreateProject"
-		]
-	},
 	"config": {
 		"process-timeout": 1800
 	},
 	"extra": {
-		"yii\\composer\\Installer::postCreateProject": {
-			"setPermission": [
-				{
-					"app/runtime": "0777",
-					"app/web/assets": "0777",
-					"yii": "0755"
-				}
-			]
+		"asset-installer-paths": {
+			"npm-asset-library": "vendor/npm",
+			"bower-asset-library": "vendor/bower"
 		}
 	}
 }

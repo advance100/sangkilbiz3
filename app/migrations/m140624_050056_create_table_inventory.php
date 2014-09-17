@@ -20,10 +20,10 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'transfer_date' => Schema::TYPE_DATE . ' NOT NULL',
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             ], $tableOptions);
 
         $this->createTable('{{%transfer_dtl}}', [
@@ -38,32 +38,6 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'FOREIGN KEY (id_transfer) REFERENCES {{%transfer}} (id_transfer) ON DELETE CASCADE ON UPDATE CASCADE',
             ], $tableOptions);
 
-//        $this->createTable('{{%transfer_notice}}', [
-//            'id_transfer' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'notice_date' => Schema::TYPE_DATE . ' NOT NULL',
-//            'status' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'description' => Schema::TYPE_STRING,
-//            // history column
-//            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-//            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-//            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            // constrain
-//            'PRIMARY KEY (id_transfer )',
-//            'FOREIGN KEY (id_transfer) REFERENCES {{%transfer}} (id_transfer) ON DELETE CASCADE ON UPDATE CASCADE',
-//            ], $tableOptions);
-//
-//        $this->createTable('{{%notice_dtl}}', [
-//            'id_transfer' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'id_product' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'id_uom' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'qty_notice' => Schema::TYPE_FLOAT . ' NOT NULL',
-//            'qty_approve' => Schema::TYPE_FLOAT,
-//            // constrain
-//            'PRIMARY KEY (id_transfer , id_product )',
-//            'FOREIGN KEY (id_transfer) REFERENCES {{%transfer_notice}} (id_transfer) ON DELETE CASCADE ON UPDATE CASCADE',
-//            ], $tableOptions);
-
         $this->createTable('{{%stock_opname}}', [
             'id_opname' => Schema::TYPE_PK,
             'opname_num' => Schema::TYPE_STRING . '(16) NOT NULL',
@@ -73,10 +47,10 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'description' => Schema::TYPE_STRING,
             'operator' => Schema::TYPE_STRING,
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             ], $tableOptions);
 
         $this->createTable('{{%stock_opname_dtl}}', [
@@ -98,10 +72,10 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'description' => Schema::TYPE_STRING,
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             ], $tableOptions);
 
         $this->createTable('{{%stock_adjustment_dtl}}', [
@@ -111,7 +85,7 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'qty' => Schema::TYPE_FLOAT . ' NOT NULL',
             'item_value' => Schema::TYPE_FLOAT . ' NOT NULL',
             // constrain
-            'PRIMARY KEY (id_adjustment , id_product',
+            'PRIMARY KEY (id_adjustment , id_product)',
             'FOREIGN KEY (id_adjustment) REFERENCES {{%stock_adjustment}} (id_adjustment) ON DELETE CASCADE ON UPDATE CASCADE',
             ], $tableOptions);
 
@@ -125,10 +99,10 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'description' => Schema::TYPE_STRING,
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             ], $tableOptions);
 
         $this->createTable('{{%stock_movement_dtl}}', [
@@ -146,16 +120,13 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
     public function safeDown()
     {
         $this->dropTable('{{%stock_movement_dtl}}');
-        $this->dropTable('{{%stock_movement}');
+        $this->dropTable('{{%stock_movement}}');
         
         $this->dropTable('{{%stock_adjustment_dtl}}');
         $this->dropTable('{{%stock_adjustment}}');
 
         $this->dropTable('{{%stock_opname_dtl}}');
         $this->dropTable('{{%stock_opname}}');
-
-//        $this->dropTable('{{%notice_dtl}}');
-//        $this->dropTable('{{%transfer_notice}}');
 
         $this->dropTable('{{%transfer_dtl}}');
         $this->dropTable('{{%transfer}}');

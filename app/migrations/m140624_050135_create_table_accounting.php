@@ -20,10 +20,10 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             'coa_type' => Schema::TYPE_INTEGER . ' NOT NULL',
             'normal_balance' => Schema::TYPE_STRING . '(1) NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             // constrain
             'FOREIGN KEY (id_parent) REFERENCES {{%coa}} (id_coa) ON DELETE CASCADE ON UPDATE CASCADE',
         ], $tableOptions);
@@ -35,20 +35,22 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             'date_to' => Schema::TYPE_DATE . ' NOT NULL',
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
         ], $tableOptions);
-
+//
         $this->createTable('{{%entri_sheet}}', [
             'cd_esheet' => Schema::TYPE_STRING . '(16) NOT NULL',
             'nm_esheet' => Schema::TYPE_STRING . '(64) NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            // constrain
+            'PRIMARY KEY (cd_esheet)',
         ], $tableOptions);
 
         $this->createTable('{{%entri_sheet_dtl}}', [
@@ -59,6 +61,7 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             // constrain
             'PRIMARY KEY (cd_esheet, cd_esheet_dtl)',
             'FOREIGN KEY (cd_esheet) REFERENCES {{%entri_sheet}} (cd_esheet) ON DELETE CASCADE ON UPDATE CASCADE',
+            'FOREIGN KEY (id_coa) REFERENCES {{%coa}} (id_coa) ON DELETE CASCADE ON UPDATE CASCADE',
         ], $tableOptions);
 
         $this->createTable('{{%gl_header}}', [
@@ -72,10 +75,10 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             'description' => Schema::TYPE_STRING . ' NOT NULL',
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             // constrain
             'FOREIGN KEY (id_periode) REFERENCES {{%acc_periode}} (id_periode) ON DELETE CASCADE ON UPDATE CASCADE',
         ], $tableOptions);
@@ -100,10 +103,10 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             'invoice_value' => Schema::TYPE_FLOAT . ' NOT NULL',
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
         ], $tableOptions);
 
         $this->createTable('{{%invoice_dtl}}', [
@@ -123,10 +126,10 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
             'payment_date' => Schema::TYPE_DATE . ' NOT NULL',
             'payment_type' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
         ], $tableOptions);
 
         $this->createTable('{{%payment_dtl}}', [

@@ -22,10 +22,10 @@ class m140624_050030_create_table_purchase extends \yii\db\Migration
             'item_discount' => Schema::TYPE_FLOAT . ' NULL',
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
-            'create_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'create_by' => Schema::TYPE_INTEGER . ' NOT NULL',
-            'update_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
-            'update_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
         ], $tableOptions);
 
         $this->createTable('{{%purchase_dtl}}', [
@@ -39,18 +39,10 @@ class m140624_050030_create_table_purchase extends \yii\db\Migration
             'FOREIGN KEY (id_purchase) REFERENCES {{%purchase}} (id_purchase) ON DELETE CASCADE ON UPDATE CASCADE',
         ], $tableOptions);
 
-//        $this->createTable('{{%purchase_sales_price}}', [
-//            'id_purchase_dtl' => Schema::TYPE_PK,
-//            'id_price_category' => Schema::TYPE_INTEGER . ' NOT NULL',
-//            'price' => Schema::TYPE_FLOAT,
-//            // constrain
-//            'FOREIGN KEY (id_purchase_dtl) REFERENCES {{%purchase_dtl}} (id_purchase_dtl) ON DELETE CASCADE ON UPDATE CASCADE',
-//        ], $tableOptions);
     }
 
     public function safeDown()
     {
-        $this->dropTable('{{%purchase_sales_price}}');
         $this->dropTable('{{%purchase_dtl}}');
         $this->dropTable('{{%purchase}}');
     }
