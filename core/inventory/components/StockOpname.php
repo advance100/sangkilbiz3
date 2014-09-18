@@ -6,7 +6,6 @@ use Yii;
 use core\inventory\models\StockOpname as MStockOpname;
 use core\inventory\models\StockOpnameDtl;
 use yii\helpers\ArrayHelper;
-use biz\app\base\Event;
 
 /**
  * Description of StockOpname
@@ -29,18 +28,17 @@ class StockOpname extends \core\base\Api
     public static function create($data, $model = null)
     {
         $model = $model ? : new MStockOpname();
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MStockOpname::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
             try {
                 $transaction = Yii::$app->db->beginTransaction();
-                Yii::$app->trigger($e_name . '_create', new Event([$model]));
+                static::trigger('_create', [$model]);
                 $success = $model->save();
-                $success = $model->saveRelated('stockMovementDtls', $data, $success, 'details', MStockOpname::SCENARIO_DEFAULT);
+                $success = $model->saveRelated('stockMovementDtls', $data, $success, 'details');
                 if ($success) {
-                    Yii::$app->trigger($e_name . '_created', new Event([$model]));
+                    static::trigger('_created', [$model]);
                     $transaction->commit();
                 } else {
                     $transaction->rollBack();
@@ -63,13 +61,12 @@ class StockOpname extends \core\base\Api
     {
         /* @var $model MStockOpname */
         $model = $model ? : static::findModel($id);
-        $e_name = static::prefixEventName();
         $success = true;
         $model->scenario = MStockOpname::SCENARIO_DEFAULT;
         $model->load($data, '');
         try {
             $transaction = Yii::$app->db->beginTransaction();
-            Yii::$app->trigger($e_name . '_append', new Event([$model]));
+            static::trigger('_append', [$model]);
             $stockOpnameDtls = ArrayHelper::index($model->stockOpnameDtls, 'id_product');
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product']; // id_product
@@ -86,10 +83,10 @@ class StockOpname extends \core\base\Api
                 $detail->qty += $dataDetail['qty'];
                 $success = $success && $detail->save();
                 $stockOpnameDtls[$index] = $detail;
-                Yii::$app->trigger($e_name . '_append_body', new Event([$model, $detail]));
+                static::trigger('_append_body', [$model,$detail]);
             }
             if ($success) {
-                Yii::$app->trigger($e_name . '_appended', new Event([$model]));
+                static::trigger('_appended', [$model]);
                 $transaction->commit();
             } else {
                 $transaction->rollBack();

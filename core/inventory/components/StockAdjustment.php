@@ -26,21 +26,29 @@ class StockAdjustment extends \core\base\Api
         return 'e_stock-adjustment';
     }
 
+    /**
+     * Create stock adjustment.
+     * 
+     * @param array $data
+     * @param \core\inventory\models\StockAdjustment $model
+     * @return \core\inventory\models\StockAdjustment
+     * @throws \Exception
+     */
     public static function create($data, $model = null)
     {
+        /* @var $model MStockAdjustment */
         $model = $model ? : new MStockAdjustment();
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
             try {
                 $transaction = Yii::$app->db->beginTransaction();
-                Yii::$app->trigger($e_name . '_create', new Event([$model]));
+                static::trigger('_create', [$model]);
                 $success = $model->save();
-                $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details', MStockAdjustment::SCENARIO_DEFAULT);
+                $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details');
                 if ($success) {
-                    Yii::$app->trigger($e_name . '_created', new Event([$model]));
+                    static::trigger('_created', [$model]);
                     $transaction->commit();
                 } else {
                     $transaction->rollBack();
@@ -59,23 +67,32 @@ class StockAdjustment extends \core\base\Api
         return static::processOutput($success, $model);
     }
 
+    /**
+     * Update stock adjustment.
+     * 
+     * @param string $id
+     * @param array $data
+     * @param \core\inventory\models\StockAdjustment $model
+     * @return \core\inventory\models\StockAdjustment
+     * @throws \Exception
+     */
     public static function update($id, $data, $model = null)
     {
+        /* @var $model MStockAdjustment */
         $model = $model ? : static::findModel($id);
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
             try {
                 $transaction = Yii::$app->db->beginTransaction();
-                Yii::$app->trigger($e_name . '_update', new Event([$model]));
+                static::trigger('_update', [$model]);
                 $success = $model->save();
                 if (!empty($data['details'])) {
                     $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details', MStockAdjustment::SCENARIO_DEFAULT);
                 }
                 if ($success) {
-                    Yii::$app->trigger($e_name . '_updated', new Event([$model]));
+                    static::trigger('_updated', [$model]);
                     $transaction->commit();
                 } else {
                     $transaction->rollBack();
@@ -94,19 +111,29 @@ class StockAdjustment extends \core\base\Api
         return static::processOutput($success, $model);
     }
 
+    /**
+     * Apply stock adjustment
+     * 
+     * @param string $id
+     * @param array $data
+     * @param \core\inventory\models\StockAdjustment $model
+     * @return \core\inventory\models\StockAdjustment
+     * @throws \Exception
+     */
     public static function apply($id, $data = [], $model = null)
     {
+        /* @var $model MStockAdjustment */
         $model = $model ? : static::findModel($id);
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
+        $model->status = MStockAdjustment::STATUS_APPLIED;
         try {
             $transaction = Yii::$app->db->beginTransaction();
-            Yii::$app->trigger($e_name . '_apply', new Event([$model]));
+            static::trigger('_apply', [$model]);
             $success = $model->save();
             if ($success) {
-                Yii::$app->trigger($e_name . '_applied', new Event([$model]));
+                static::trigger('_applied', [$model]);
                 $transaction->commit();
             } else {
                 $transaction->rollBack();

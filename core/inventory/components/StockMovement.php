@@ -4,7 +4,6 @@ namespace core\inventory\components;
 
 use Yii;
 use core\inventory\models\StockMovement as MStockMovement;
-use biz\app\base\Event;
 use yii\base\NotSupportedException;
 
 /**
@@ -28,18 +27,17 @@ class StockMovement extends \core\base\Api
     public static function create($data, $model = null)
     {
         $model = $model ? : new MStockMovement();
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MStockMovement::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
             try {
                 $transaction = Yii::$app->db->beginTransaction();
-                Yii::$app->trigger($e_name . '_create', new Event([$model]));
+                static::trigger('_create', [$model]);
                 $success = $model->save();
-                $success = $model->saveRelated('stockMovementDtls', $data, $success, 'details', MStockMovement::SCENARIO_DEFAULT);
+                $success = $model->saveRelated('stockMovementDtls', $data, $success, 'details');
                 if ($success) {
-                    Yii::$app->trigger($e_name . '_created', new Event([$model]));
+                    static::trigger('_created', [$model]);
                     $transaction->commit();
                 } else {
                     $transaction->rollBack();
@@ -58,11 +56,19 @@ class StockMovement extends \core\base\Api
         return static::processOutput($success, $model);
     }
     
+    /**
+     * 
+     * @throws NotSupportedException
+     */
     public static function update($id, $data, $model = null)
     {
         throw new NotSupportedException();
     }
     
+    /**
+     * 
+     * @throws NotSupportedException
+     */
     public static function delete($id, $model = null)
     {
         throw new NotSupportedException();

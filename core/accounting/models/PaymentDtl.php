@@ -11,8 +11,8 @@ use Yii;
  * @property integer $id_invoice
  * @property double $payment_value
  *
- * @property Payment $idPayment
- * @property Invoice $idInvoice
+ * @property Payment $payment
+ * @property Invoice $invoice
  */
 class PaymentDtl extends \yii\db\ActiveRecord
 {
@@ -51,7 +51,7 @@ class PaymentDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getIdPayment()
+    public function getPayment()
     {
         return $this->hasOne(Payment::className(), ['id_payment' => 'id_payment']);
     }
@@ -59,7 +59,7 @@ class PaymentDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getIdInvoice()
+    public function getInvoice()
     {
         return $this->hasOne(Invoice::className(), ['id_invoice' => 'id_invoice']);
     }

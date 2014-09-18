@@ -40,7 +40,7 @@ class Invoice extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['invoice_num', 'invoice_date', 'due_date', 'invoice_type', 'id_vendor', 'invoice_value', 'status', 'created_by', 'updated_by'], 'required'],
+            [['invoice_num', 'invoice_date', 'due_date', 'invoice_type', 'id_vendor', 'invoice_value', 'status'], 'required'],
             [['invoice_date', 'due_date', 'created_at', 'updated_at'], 'safe'],
             [['invoice_type', 'id_vendor', 'status', 'created_by', 'updated_by'], 'integer'],
             [['invoice_value'], 'number'],
@@ -90,6 +90,6 @@ class Invoice extends \yii\db\ActiveRecord
      */
     public function getPayments()
     {
-        return $this->hasMany(Payment::className(), ['id_payment' => 'id_payment'])->viaTable('{payment_dtl}', ['id_invoice' => 'id_invoice']);
+        return $this->hasMany(Payment::className(), ['id_payment' => 'id_payment'])->via('paymentDtls');
     }
 }

@@ -23,6 +23,9 @@ use Yii;
  */
 class StockAdjustment extends \yii\db\ActiveRecord
 {
+    const STATUS_DRAFT = 1;
+    const STATUS_APPLIED = 2;
+
     /**
      * @inheritdoc
      */
