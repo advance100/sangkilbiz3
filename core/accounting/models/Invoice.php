@@ -28,6 +28,9 @@ class Invoice extends \yii\db\ActiveRecord
 {
     const TYPE_IN = 1;
     const TYPE_OUT = 2;
+    
+    const STATUS_DRAFT = 1;
+    const STATUS_POSTED = 2;
 
     /**
      * @inheritdoc

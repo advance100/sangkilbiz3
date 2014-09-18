@@ -2,7 +2,9 @@
 
 namespace core\sales\components;
 
+use Yii;
 use core\sales\models\Sales as MSales;
+use yii\helpers\ArrayHelper;
 
 /**
  * Description of Sales
@@ -131,10 +133,11 @@ class Sales extends \core\base\Api
         try {
             $transaction = Yii::$app->db->beginTransaction();
             static::trigger('_release', [$model]);
-            $salesDtls = $model->salesDtls;
+            $salesDtls = ArrayHelper::index($model->salesDtls,'id_product');
             if (!empty($data['details'])) {
                 static::trigger('_release_head', [$model]);
-                foreach ($data['details'] as $index => $dataDetail) {
+                foreach ($data['details'] as $dataDetail) {
+                    $index = $dataDetail['id_product'];
                     $detail = $salesDtls[$index];
                     $detail->scenario = MSales::SCENARIO_RELEASE;
                     $detail->load($dataDetail, '');
@@ -142,7 +145,7 @@ class Sales extends \core\base\Api
                     static::trigger('_release_body', [$model,$detail]);
                     $salesDtls[$index] = $detail;
                 }
-                $model->populateRelation('salesDtls', $salesDtls);
+                $model->populateRelation('salesDtls', array_values($salesDtls));
                 static::trigger('_release_end', [$model]);
             }
             $allReleased = true;

@@ -2,6 +2,7 @@
 
 namespace core\accounting\components;
 
+use Yii;
 use core\accounting\models\Invoice as MInvoice;
 use core\accounting\models\InvoiceDtl;
 use core\purchase\models\Purchase;
@@ -47,6 +48,7 @@ class Invoice extends \core\base\Api
         $model = $model ? : new MInvoice();
         $success = false;
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
+        $model->status = MInvoice::STATUS_DRAFT;
         $model->load($data, '');
         if (!empty($data['details'])) {
             try {
@@ -251,7 +253,7 @@ class Invoice extends \core\base\Api
                 ])->column();
         $new = array_diff($received, $invoiced);
         $values = StockMovement::find()
-            ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
                 ->joinWith('stockMovementDtls')
                 ->where([
                     '{{%stock_movement}}.type_reff' => StockMovement::TYPE_PURCHASE,
@@ -275,7 +277,7 @@ class Invoice extends \core\base\Api
         $data['details'] = $details;
         return static::create($data, $model);
     }
-    
+
     /**
      * 
      * @param array $data
@@ -304,7 +306,7 @@ class Invoice extends \core\base\Api
                 ])->column();
         $new = array_diff($released, $invoiced);
         $values = StockMovement::find()
-            ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
                 ->joinWith('stockMovementDtls')
                 ->where([
                     '{{%stock_movement}}.type_reff' => StockMovement::TYPE_SALES,
@@ -328,5 +330,30 @@ class Invoice extends \core\base\Api
         $data['details'] = $details;
         return static::create($data, $model);
     }
-    
+
+    public static function post($id, $data, $model = null)
+    {
+        /* @var $model MInvoice */
+        $model = $model ? : static::findModel($id);
+        $success = false;
+        $model->scenario = MInvoice::SCENARIO_DEFAULT;
+        $model->load($data, '');
+        $model->status = MInvoice::STATUS_POSTED;
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            static::trigger('_post', [$model]);
+            $success = $model->save();
+            if ($success) {
+                static::trigger('_posted', [$model]);
+                $transaction->commit();
+            } else {
+                $transaction->rollBack();
+                $success = false;
+            }
+        } catch (\Exception $exc) {
+            $transaction->rollBack();
+            throw $exc;
+        }
+        return static::processOutput($success, $model);
+    }
 }

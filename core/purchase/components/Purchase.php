@@ -2,7 +2,9 @@
 
 namespace core\purchase\components;
 
+use Yii;
 use core\purchase\models\Purchase as MPurchase;
+use yii\helpers\ArrayHelper;
 
 /**
  * Description of Purchase
@@ -134,10 +136,11 @@ class Purchase extends \core\base\Api
         try {
             $transaction = Yii::$app->db->beginTransaction();
             static::trigger('_receive', [$model]);
-            $purchaseDtls = $model->purchaseDtls;
+            $purchaseDtls = ArrayHelper::index($model->purchaseDtls,'id_product');
             if (!empty($data['details'])) {
                 static::trigger('_receive_head', [$model]);
-                foreach ($data['details'] as $index => $dataDetail) {
+                foreach ($data['details'] as $dataDetail) {
+                    $index = $dataDetail['id_product'];
                     $detail = $purchaseDtls[$index];
                     $detail->scenario = MPurchase::SCENARIO_RECEIVE;
                     $detail->load($dataDetail, '');
@@ -145,7 +148,7 @@ class Purchase extends \core\base\Api
                     static::trigger('_receive_body', [$model,$detail]);
                     $purchaseDtls[$index] = $detail;
                 }
-                $model->populateRelation('purchaseDtls', $purchaseDtls);
+                $model->populateRelation('purchaseDtls', array_values($purchaseDtls));
                 static::trigger('_receive_end', [$model]);
             }
             $allReceived = true;
