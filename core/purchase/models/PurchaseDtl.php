@@ -13,6 +13,7 @@ use core\master\models\ProductUom;
  * @property integer $id_uom
  * @property double $purch_qty
  * @property double $purch_price
+ * @property double $purch_qty_receive
  *
  * @property Purchase $purchase
  */

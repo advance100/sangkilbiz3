@@ -27,7 +27,7 @@ class m140624_050114_create_table_sales extends \yii\db\Migration
             'updated_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
             'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             // constrain
-        ], $tableOptions);
+            ], $tableOptions);
 
         $this->createTable('{{%sales_dtl}}', [
             'id_sales' => Schema::TYPE_INTEGER . ' NOT NULL',
@@ -35,13 +35,14 @@ class m140624_050114_create_table_sales extends \yii\db\Migration
             'id_uom' => Schema::TYPE_INTEGER . ' NOT NULL',
             'sales_qty' => Schema::TYPE_FLOAT . ' NOT NULL',
             'sales_price' => Schema::TYPE_FLOAT . ' NOT NULL',
+            'sales_qty_release' => Schema::TYPE_FLOAT,
             'cogs' => Schema::TYPE_FLOAT . ' NOT NULL',
             'discount' => Schema::TYPE_FLOAT,
             'tax' => Schema::TYPE_FLOAT,
             // constrain
             'PRIMARY KEY (id_sales , id_product )',
             'FOREIGN KEY (id_sales) REFERENCES {{%sales}} (id_sales) ON DELETE CASCADE ON UPDATE CASCADE',
-        ], $tableOptions);
+            ], $tableOptions);
     }
 
     public function safeDown()

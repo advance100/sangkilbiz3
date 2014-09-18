@@ -11,9 +11,12 @@ use Yii;
  * @property integer $id_warehouse
  * @property integer $id_product
  * @property double $qty
- * @property double $item_value
+ * @property double $item_value Use to change cogs item.
+ * When `null` mean no change for cogs.
+ * @property double $trans_value Transaction value acording with this item. 
+ * Value can be purchase price or sales price.
  *
- * @property StockMovement $idMovement
+ * @property StockMovement $movement
  */
 class StockMovementDtl extends \yii\db\ActiveRecord
 {
@@ -22,7 +25,7 @@ class StockMovementDtl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'stock_movement_dtl';
+        return '{{%stock_movement_dtl}}';
     }
 
     /**
@@ -54,7 +57,7 @@ class StockMovementDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getIdMovement()
+    public function getMovement()
     {
         return $this->hasOne(StockMovement::className(), ['id_movement' => 'id_movement']);
     }

@@ -8,6 +8,7 @@ use core\purchase\models\Purchase;
 use core\sales\models\Sales;
 use yii\helpers\ArrayHelper;
 use yii\base\UserException;
+use core\inventory\models\StockMovement;
 
 /**
  * Description of Invoice
@@ -17,11 +18,17 @@ use yii\base\UserException;
 class Invoice extends \core\base\Api
 {
 
+    /**
+     * @inheritdoc
+     */
     public static function modelClass()
     {
         return MInvoice::className();
     }
 
+    /**
+     * @inheritdoc
+     */
     public static function prefixEventName()
     {
         return 'e_invoice';
@@ -30,8 +37,8 @@ class Invoice extends \core\base\Api
     /**
      * 
      * @param array $data
-     * @param MInvoice $model
-     * @return mixed
+     * @param \core\accounting\models\Invoice $model
+     * @return core\accounting\models\Invoice
      * @throws \Exception
      */
     public static function create($data, $model = null)
@@ -72,6 +79,14 @@ class Invoice extends \core\base\Api
         return [$success, $model];
     }
 
+    /**
+     * 
+     * @param string $id
+     * @param array $data
+     * @param \core\accounting\models\Invoice $model
+     * @return core\accounting\models\Invoice
+     * @throws \Exception
+     */
     public static function update($id, $data, $model = null)
     {
         /* @var $model MInvoice */
@@ -207,4 +222,111 @@ class Invoice extends \core\base\Api
         $data['details'] = $details;
         return static::processOutput($success, $model);
     }
+
+    /**
+     * 
+     * @param array $data
+     * @param \core\accounting\models\Invoice $model
+     * @return core\accounting\models\Invoice
+     * @throws UserException
+     */
+    public static function createFromPurchaseReceive($data, $model = null)
+    {
+        $ids = (array) $data['id_purchase'];
+        $vendors = Purchase::find()->select('id_supplier')
+                ->distinct()->column();
+
+        if (count($vendors) !== 1) {
+            throw new UserException('Vendor harus sama');
+        }
+        $received = StockMovement::find()->select('id_movement')
+                ->where([
+                    'type_reff' => StockMovement::TYPE_PURCHASE,
+                    'id_reff' => $ids
+                ])->column();
+        $invoiced = InvoiceDtl::find()->select('id_reff')
+                ->where([
+                    'type_reff' => InvoiceDtl::TYPE_PURCHASE_GR,
+                    'id_reff' => $received,
+                ])->column();
+        $new = array_diff($received, $invoiced);
+        $values = StockMovement::find()
+            ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->joinWith('stockMovementDtls')
+                ->where([
+                    '{{%stock_movement}}.type_reff' => StockMovement::TYPE_PURCHASE,
+                    '{{%stock_movement}}.id_reff' => $new
+                ])
+                ->groupBy('{{%stock_movement}}.id_movement')
+                ->indexBy('id_movement')
+                ->asArray()->all();
+
+        unset($data['id_purchase']);
+        $data['id_vendor'] = reset($vendors);
+        $data['invoice_type'] = MInvoice::TYPE_IN;
+        $details = [];
+        foreach ($new as $id) {
+            $details[] = [
+                'type_reff' => InvoiceDtl::TYPE_PURCHASE_GR,
+                'id_reff' => $id,
+                'trans_value' => $values[$id]['jml']
+            ];
+        }
+        $data['details'] = $details;
+        return static::create($data, $model);
+    }
+    
+    /**
+     * 
+     * @param array $data
+     * @param \core\accounting\models\Invoice $model
+     * @return \core\accounting\models\Invoice
+     * @throws UserException
+     */
+    public static function createFromSalesRelease($data, $model = null)
+    {
+        $ids = (array) $data['id_sales'];
+        $vendors = Sales::find()->select('id_customer')
+                ->distinct()->column();
+
+        if (count($vendors) !== 1) {
+            throw new UserException('Vendor harus sama');
+        }
+        $released = StockMovement::find()->select('id_movement')
+                ->where([
+                    'type_reff' => StockMovement::TYPE_SALES,
+                    'id_reff' => $ids
+                ])->column();
+        $invoiced = InvoiceDtl::find()->select('id_reff')
+                ->where([
+                    'type_reff' => InvoiceDtl::TYPE_SALES_GI,
+                    'id_reff' => $released,
+                ])->column();
+        $new = array_diff($released, $invoiced);
+        $values = StockMovement::find()
+            ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->joinWith('stockMovementDtls')
+                ->where([
+                    '{{%stock_movement}}.type_reff' => StockMovement::TYPE_SALES,
+                    '{{%stock_movement}}.id_reff' => $new
+                ])
+                ->groupBy('{{%stock_movement}}.id_movement')
+                ->indexBy('id_movement')
+                ->asArray()->all();
+
+        unset($data['id_sales']);
+        $data['id_vendor'] = reset($vendors);
+        $data['invoice_type'] = MInvoice::TYPE_OUT;
+        $details = [];
+        foreach ($new as $id) {
+            $details[] = [
+                'type_reff' => InvoiceDtl::TYPE_SALES_GI,
+                'id_reff' => $id,
+                'trans_value' => $values[$id]['jml']
+            ];
+        }
+        $data['details'] = $details;
+        return static::create($data, $model);
+    }
+    
 }

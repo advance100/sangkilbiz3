@@ -14,7 +14,7 @@ use Yii;
  * @property double $transfer_qty_send
  * @property double $transfer_qty_receive
  *
- * @property Transfer $idTransfer
+ * @property Transfer $transfer
  */
 class TransferDtl extends \yii\db\ActiveRecord
 {
@@ -56,7 +56,7 @@ class TransferDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getIdTransfer()
+    public function getTransfer()
     {
         return $this->hasOne(Transfer::className(), ['id_transfer' => 'id_transfer']);
     }

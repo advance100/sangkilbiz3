@@ -24,12 +24,16 @@ use Yii;
  */
 class StockMovement extends \yii\db\ActiveRecord
 {
+    const TYPE_PURCHASE = 100;
+    const TYPE_SALES = 200;
+    const TYPE_TRANSFER = 300;
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'stock_movement';
+        return '{{%stock_movement}}';
     }
 
     /**
@@ -38,7 +42,7 @@ class StockMovement extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['movement_num', 'movement_date', 'movement_type', 'status', 'created_by', 'updated_by'], 'required'],
+            [['movement_num', 'movement_date', 'movement_type', 'status'], 'required'],
             [['movement_date', 'created_at', 'updated_at'], 'safe'],
             [['movement_type', 'type_reff', 'id_reff', 'status', 'created_by', 'updated_by'], 'integer'],
             [['movement_num'], 'string', 'max' => 16],

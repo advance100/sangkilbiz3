@@ -26,6 +26,9 @@ use Yii;
  */
 class Invoice extends \yii\db\ActiveRecord
 {
+    const TYPE_IN = 1;
+    const TYPE_OUT = 2;
+
     /**
      * @inheritdoc
      */

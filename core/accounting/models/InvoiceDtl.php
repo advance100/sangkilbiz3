@@ -17,12 +17,15 @@ use Yii;
  */
 class InvoiceDtl extends \yii\db\ActiveRecord
 {
+    const TYPE_PURCHASE_GR = 100;
+    const TYPE_SALES_GI = 200;
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'invoice_dtl';
+        return '{{%invoice_dtl}}';
     }
 
     /**
