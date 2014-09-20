@@ -30,7 +30,7 @@ class Coa extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'coa';
+        return '{{%coa}}';
     }
 
     /**

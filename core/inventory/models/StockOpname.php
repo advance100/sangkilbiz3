@@ -28,7 +28,7 @@ class StockOpname extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'stock_opname';
+        return '{{%stock_opname}}';
     }
 
     /**

@@ -13,7 +13,7 @@ use Yii;
  * @property double $qty
  * @property double $item_value
  *
- * @property StockAdjustment $adjustment
+ * @property StockAdjustment $stockAdjustment
  */
 class StockAdjustmentDtl extends \yii\db\ActiveRecord
 {
@@ -22,7 +22,7 @@ class StockAdjustmentDtl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'stock_adjustment_dtl';
+        return '{{%stock_adjustment_dtl}}';
     }
 
     /**
@@ -54,7 +54,7 @@ class StockAdjustmentDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getAdjustment()
+    public function getStockAdjustment()
     {
         return $this->hasOne(StockAdjustment::className(), ['id_adjustment' => 'id_adjustment']);
     }

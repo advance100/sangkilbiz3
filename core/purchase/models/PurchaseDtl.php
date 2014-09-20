@@ -14,6 +14,7 @@ use core\master\models\ProductUom;
  * @property double $purch_qty
  * @property double $purch_price
  * @property double $purch_qty_receive
+ * @property double $discount
  *
  * @property Purchase $purchase
  */

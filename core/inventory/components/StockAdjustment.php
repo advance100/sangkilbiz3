@@ -37,7 +37,7 @@ class StockAdjustment extends \core\base\Api
     public static function create($data, $model = null)
     {
         /* @var $model MStockAdjustment */
-        $model = $model ? : new MStockAdjustment();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');

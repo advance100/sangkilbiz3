@@ -37,7 +37,7 @@ class Invoice extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'invoice';
+        return '{{%invoice}}';
     }
 
     /**

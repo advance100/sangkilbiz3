@@ -23,7 +23,7 @@ class EntriSheet extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'entri_sheet';
+        return '{{%entri_sheet}}';
     }
 
     /**

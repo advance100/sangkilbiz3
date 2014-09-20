@@ -23,7 +23,7 @@ class TransferDtl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'transfer_dtl';
+        return '{{%transfer_dtl}}';
     }
 
     /**

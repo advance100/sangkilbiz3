@@ -27,7 +27,7 @@ class StockOpname extends \core\base\Api
 
     public static function create($data, $model = null)
     {
-        $model = $model ? : new MStockOpname();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MStockOpname::SCENARIO_DEFAULT;
         $model->load($data, '');

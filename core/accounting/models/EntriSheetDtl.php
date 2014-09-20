@@ -22,7 +22,7 @@ class EntriSheetDtl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'entri_sheet_dtl';
+        return '{{%entri_sheet_dtl}}';
     }
 
     /**

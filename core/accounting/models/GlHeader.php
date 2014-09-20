@@ -31,7 +31,7 @@ class GlHeader extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'gl_header';
+        return '{{%gl_header}}';
     }
 
     /**
@@ -40,7 +40,7 @@ class GlHeader extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['gl_num', 'gl_date', 'id_periode', 'id_branch', 'type_reff', 'description', 'status', 'created_by', 'updated_by'], 'required'],
+            [['gl_num', 'gl_date', 'id_periode', 'id_branch', 'type_reff', 'description', 'status'], 'required'],
             [['gl_date', 'created_at', 'updated_at'], 'safe'],
             [['id_periode', 'id_branch', 'type_reff', 'id_reff', 'status', 'created_by', 'updated_by'], 'integer'],
             [['gl_num'], 'string', 'max' => 16],

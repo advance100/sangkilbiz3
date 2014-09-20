@@ -89,9 +89,8 @@ class Api
      */
     public static function create($data, $model = null)
     {
-        $modelClass = static::modelClass();
         /* @var $model ActiveRecord */
-        $model = $model ? : new $modelClass();
+        $model = $model ? : static::createNewModel();
         static::trigger('_create', [$model]);
         $model->load($data, '');
         if ($model->save()) {
@@ -142,6 +141,14 @@ class Api
         }
     }
 
+    /**
+     * Create model
+     * @return ActiveRecord
+     */
+    public static function createNewModel()
+    {
+        return Yii::createObject(static::modelClass());        
+    }
     /**
      * Returns the data model based on the primary key given.
      * If the data model is not found, a 404 HTTP exception will be raised.

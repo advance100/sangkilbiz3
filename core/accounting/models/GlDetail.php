@@ -22,7 +22,7 @@ class GlDetail extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'gl_detail';
+        return '{{%gl_detail}}';
     }
 
     /**

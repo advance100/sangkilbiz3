@@ -26,7 +26,7 @@ class StockMovement extends \core\base\Api
 
     public static function create($data, $model = null)
     {
-        $model = $model ? : new MStockMovement();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MStockMovement::SCENARIO_DEFAULT;
         $model->load($data, '');

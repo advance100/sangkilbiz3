@@ -40,7 +40,7 @@ class Sales extends \core\base\Api
     public static function create($data, $model = null)
     {
         /* @var $model MSales */
-        $model = $model ? : new MSales();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MSales::SCENARIO_DEFAULT;
         $model->load($data, '');

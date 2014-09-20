@@ -6,6 +6,7 @@ use Yii;
 use core\accounting\models\Payment as MPayment;
 use core\accounting\models\PaymentDtl;
 use core\accounting\models\Invoice;
+use yii\base\UserException;
 
 /**
  * Description of Payment
@@ -15,11 +16,17 @@ use core\accounting\models\Invoice;
 class Payment extends \core\base\Api
 {
 
+    /**
+     * @inheritdoc
+     */
     public static function modelClass()
     {
         return MPayment::className();
     }
 
+    /**
+     * @inheritdoc
+     */
     public static function prefixEventName()
     {
         return 'e_payment';
@@ -27,7 +34,7 @@ class Payment extends \core\base\Api
 
     public static function create($data, $model = null)
     {
-        $model = $model ? : new MPayment();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
@@ -60,7 +67,6 @@ class Payment extends \core\base\Api
     public static function update($id, $data, $model = null)
     {
         $model = $model ? : static::findModel($id);
-        $e_name = static::prefixEventName();
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
@@ -143,6 +149,15 @@ class Payment extends \core\base\Api
             ];
         }
         $data['details'] = $details;
+        return static::processOutput($success, $model);
+    }
+    
+    public static function post($id,$data,$model=null)
+    {
+        /* @var $model MPayment */
+        $model = $model ? : static::findModel($id);
+        $model->load($data,'');
+        
         return static::processOutput($success, $model);
     }
 }

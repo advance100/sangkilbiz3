@@ -19,7 +19,7 @@ class m140624_050030_create_table_purchase extends \yii\db\Migration
             'id_branch' => Schema::TYPE_INTEGER . ' NOT NULL',
             'purchase_date' => Schema::TYPE_DATE . ' NOT NULL',
             'purchase_value' => Schema::TYPE_FLOAT . ' NOT NULL',
-            'item_discount' => Schema::TYPE_FLOAT . ' NULL',
+            'discount' => Schema::TYPE_FLOAT,
             'status' => Schema::TYPE_INTEGER . ' NOT NULL',
             // history column
             'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
@@ -34,6 +34,7 @@ class m140624_050030_create_table_purchase extends \yii\db\Migration
             'id_uom' => Schema::TYPE_INTEGER . ' NOT NULL',
             'purch_qty' => Schema::TYPE_FLOAT . ' NOT NULL',
             'purch_price' => Schema::TYPE_FLOAT . ' NOT NULL',
+            'discount' => Schema::TYPE_FLOAT,
             'purch_qty_receive' => Schema::TYPE_FLOAT,
             // constrain
             'PRIMARY KEY (id_purchase , id_product)',

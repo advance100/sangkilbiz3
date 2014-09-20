@@ -43,7 +43,7 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
 //
         $this->createTable('{{%entri_sheet}}', [
             'cd_esheet' => Schema::TYPE_STRING . '(16) NOT NULL',
-            'nm_esheet' => Schema::TYPE_STRING . '(64) NOT NULL',
+            'nm_esheet' => Schema::TYPE_STRING . '(64)',
             // history column
             'created_at' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
             'created_by' => Schema::TYPE_INTEGER . ' NOT NULL',
@@ -56,7 +56,7 @@ class m140624_050135_create_table_accounting extends \yii\db\Migration
         $this->createTable('{{%entri_sheet_dtl}}', [
             'cd_esheet' => Schema::TYPE_STRING . '(16) NOT NULL',
             'cd_esheet_dtl' => Schema::TYPE_STRING . '(16) NOT NULL',
-            'nm_esheet_dtl' => Schema::TYPE_STRING . '(64) NOT NULL',
+            'nm_esheet_dtl' => Schema::TYPE_STRING . '(64)',
             'id_coa' => Schema::TYPE_INTEGER . ' NOT NULL',
             // constrain
             'PRIMARY KEY (cd_esheet, cd_esheet_dtl)',

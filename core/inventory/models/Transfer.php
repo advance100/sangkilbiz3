@@ -27,7 +27,7 @@ class Transfer extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'transfer';
+        return '{{%transfer}}';
     }
 
     /**

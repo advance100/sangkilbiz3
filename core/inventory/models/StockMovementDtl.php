@@ -16,10 +16,11 @@ use Yii;
  * @property double $trans_value Transaction value acording with this item. 
  * Value can be purchase price or sales price.
  *
- * @property StockMovement $movement
+ * @property StockMovement $stockMovement
  */
 class StockMovementDtl extends \yii\db\ActiveRecord
 {
+
     /**
      * @inheritdoc
      */
@@ -57,7 +58,7 @@ class StockMovementDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getMovement()
+    public function getStockMovement()
     {
         return $this->hasOne(StockMovement::className(), ['id_movement' => 'id_movement']);
     }

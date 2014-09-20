@@ -15,11 +15,17 @@ use yii\base\NotSupportedException;
 class GL extends \core\base\Api
 {
 
+    /**
+     * @inheritdoc
+     */
     public static function modelClass()
     {
         return GlHeader::className();
     }
 
+    /**
+     * @inheritdoc
+     */
     public static function prefixEventName()
     {
         return 'e_gl';
@@ -28,7 +34,7 @@ class GL extends \core\base\Api
     public static function create($data, $model = null)
     {
         /* @var $model GlHeader */
-        $model = $model ? : new GlHeader();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = GlHeader::SCENARIO_DEFAULT;
         $model->load($data, '');

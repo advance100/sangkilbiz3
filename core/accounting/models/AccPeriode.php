@@ -26,7 +26,7 @@ class AccPeriode extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'acc_periode';
+        return '{{%acc_periode}}';
     }
 
     /**

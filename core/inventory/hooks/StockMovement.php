@@ -67,7 +67,8 @@ class StockMovement extends \yii\base\Behavior
                     'id_warehouse' => $detail->id_warehouse,
                     'id_product' => $detail->id_product,
                     'movement_qty' => $detail->qty_receive * $isi,
-                    'item_value' => $detail->purch_price,
+                    'item_value' => $detail->purch_price - $detail->discount,
+                    'trans_value' => $detail->purch_price - $detail->discount,
                 ];
             }
         }
@@ -98,6 +99,7 @@ class StockMovement extends \yii\base\Behavior
                     'id_warehouse' => $detail->id_warehouse,
                     'id_product' => $detail->id_product,
                     'movement_qty' => -$detail->qty_release * $isi,
+                    'trans_value' => $detail->sales_price - $detail->discount,
                 ];
             }
         }

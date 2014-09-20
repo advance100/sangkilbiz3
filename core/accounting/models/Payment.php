@@ -11,6 +11,7 @@ use Yii;
  * @property string $payment_num
  * @property string $payment_date
  * @property integer $payment_type
+ * @property integer $status
  * @property string $created_at
  * @property integer $created_by
  * @property string $updated_at
@@ -21,12 +22,15 @@ use Yii;
  */
 class Payment extends \yii\db\ActiveRecord
 {
+    const STATUS_DRAFT = 1;
+    const STATUS_POSTED = 2;
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'payment';
+        return '{{%payment}}';
     }
 
     /**

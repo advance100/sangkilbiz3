@@ -7,7 +7,6 @@ use core\accounting\models\Invoice as MInvoice;
 use core\accounting\models\InvoiceDtl;
 use core\purchase\models\Purchase;
 use core\sales\models\Sales;
-use yii\helpers\ArrayHelper;
 use yii\base\UserException;
 use core\inventory\models\StockMovement;
 
@@ -45,7 +44,7 @@ class Invoice extends \core\base\Api
     public static function create($data, $model = null)
     {
         /* @var $model MInvoice */
-        $model = $model ? : new MInvoice();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->status = MInvoice::STATUS_DRAFT;
@@ -78,7 +77,7 @@ class Invoice extends \core\base\Api
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
-        return [$success, $model];
+        return static::processOutput($success, $model);
     }
 
     /**
@@ -129,102 +128,6 @@ class Invoice extends \core\base\Api
         return [$success, $model];
     }
 
-    public function createFromPurchase($data, $model = null)
-    {
-        $inv_vals = ArrayHelper::map($data['details'], 'id_purchase', 'value');
-        $ids = array_keys($inv_vals);
-
-        $vendors = [];
-        $purchase_values = Purchase::find()
-            ->where(['id_purchase' => $ids])
-            ->indexBy('id_purchase')
-            ->asArray()
-            ->all();
-        $vendor = null;
-        foreach ($purchase_values as $row) {
-            $vendor = $row['id_supplier'];
-            $vendors[$row['id_supplier']] = true;
-        }
-        if (count($vendors) !== 1) {
-            throw new UserException('Vendor harus sama');
-        }
-
-        $purchase_invoiced = InvoiceDtl::find()
-            ->select(['id_reff', 'total' => 'sum(trans_value)'])
-            ->where(['reff_type' => InvoiceDtl::TYPE_PURCHASE, 'id_reff' => $ids])
-            ->groupBy('id_reff')
-            ->indexBy('id_reff')
-            ->asArray()
-            ->all();
-
-        $data['id_vendor'] = $vendor;
-        $data['invoice_type'] = MInvoice::TYPE_IN;
-        $details = [];
-        foreach ($inv_vals as $id => $value) {
-            $sisa = $purchase_values[$id]['purchase_value'] - $purchase_values[$id]['item_discount'];
-            if (isset($purchase_invoiced[$id])) {
-                $sisa -= $purchase_invoiced[$id]['total'];
-            }
-            if ($value > $sisa) {
-                throw new UserException('Tagihan lebih besar dari sisa');
-            }
-            $details[] = [
-                'id_reff' => $id,
-                'trans_value' => $value,
-            ];
-        }
-        $data['details'] = $details;
-        return static::processOutput($success, $model);
-    }
-
-    public function createFromSales($data, $model = null)
-    {
-        $inv_vals = ArrayHelper::map($data['details'], 'id_sales', 'value');
-        $ids = array_keys($inv_vals);
-
-        $vendors = [];
-        $sales_values = Sales::find()
-            ->where(['id_sales' => $ids])
-            ->indexBy('id_sales')
-            ->asArray()
-            ->all();
-        $vendor = null;
-        foreach ($purchase_values as $row) {
-            $vendor = $row['id_customer'];
-            $vendors[$row['id_customer']] = true;
-        }
-        if (count($vendors) !== 1) {
-            throw new UserException('Vendor harus sama');
-        }
-
-        $sales_invoiced = InvoiceDtl::find()
-            ->select(['id_reff', 'total' => 'sum(trans_value)'])
-            ->where(['reff_type' => InvoiceDtl::TYPE_SALES, 'id_reff' => $ids])
-            ->groupBy('id_reff')
-            ->indexBy('id_reff')
-            ->asArray()
-            ->all();
-
-        $data['id_vendor'] = $vendor;
-        $data['invoice_type'] = MInvoice::TYPE_OUT;
-        $details = [];
-        foreach ($inv_vals as $id => $value) {
-            $sisa = $sales_values[$id]['sales_value'] - $purchase_values[$id]['discount'];
-            if (isset($sales_invoiced[$id])) {
-                $sisa -= $sales_invoiced[$id]['total'];
-            }
-            if ($value > $sisa) {
-                throw new UserException('Tagihan lebih besar dari sisa');
-            }
-            $details[] = [
-                'id_reff' => $id,
-                'trans_value' => $value,
-            ];
-        }
-        $data['details'] = $details;
-        return static::processOutput($success, $model);
-    }
-
     /**
      * 
      * @param array $data
@@ -232,7 +135,7 @@ class Invoice extends \core\base\Api
      * @return core\accounting\models\Invoice
      * @throws UserException
      */
-    public static function createFromPurchaseReceive($data, $model = null)
+    public static function createFromPurchase($data, $model = null)
     {
         $ids = (array) $data['id_purchase'];
         $vendors = Purchase::find()->select('id_supplier')
@@ -241,6 +144,7 @@ class Invoice extends \core\base\Api
         if (count($vendors) !== 1) {
             throw new UserException('Vendor harus sama');
         }
+        // invoice for GR
         $received = StockMovement::find()->select('id_movement')
                 ->where([
                     'type_reff' => StockMovement::TYPE_PURCHASE,
@@ -255,7 +159,7 @@ class Invoice extends \core\base\Api
         $values = StockMovement::find()
                 ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
                 ->joinWith('stockMovementDtls')
-                ->where([
+                ->andWhere([
                     '{{%stock_movement}}.type_reff' => StockMovement::TYPE_PURCHASE,
                     '{{%stock_movement}}.id_reff' => $new
                 ])
@@ -274,18 +178,47 @@ class Invoice extends \core\base\Api
                 'trans_value' => $values[$id]['jml']
             ];
         }
+        // Invoice for Global discount
+        // get complete received purchase that invoiced yet :D
+        $completed = Purchase::find()->select(['id_purchase', 'discount'])
+            ->andWhere(['status' => Purchase::STATUS_RECEIVED, 'id_purchase' => $ids])
+            ->andWhere(['<>', 'discount', null])
+            ->asArray()->indexBy('id_purchase')
+            ->all();
+        $invoiced = InvoiceDtl::find()->select('id_reff')
+                ->where([
+                    'type_reff' => InvoiceDtl::TYPE_PURCHASE_DISCOUNT,
+                    'id_reff' => array_keys($completed),
+                ])->column();
+        $new = array_diff(array_keys($completed), $invoiced);
+        foreach ($new as $id) {
+            $details[] = [
+                'type_reff' => InvoiceDtl::TYPE_PURCHASE_DISCOUNT,
+                'id_reff' => $id,
+                'trans_value' => -$completed['discount']
+            ];
+        }
+
         $data['details'] = $details;
-        return static::create($data, $model);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            $model = static::create($data, $model);
+            $model = static::post('', [], $model);
+            $transaction->commit();
+            return $model;
+        } catch (\Exception $exc) {
+            $transaction->rollBack();
+            throw $exc;
+        }
     }
 
     /**
-     * 
      * @param array $data
      * @param \core\accounting\models\Invoice $model
      * @return \core\accounting\models\Invoice
      * @throws UserException
      */
-    public static function createFromSalesRelease($data, $model = null)
+    public static function createFromSales($data, $model = null)
     {
         $ids = (array) $data['id_sales'];
         $vendors = Sales::find()->select('id_customer')
@@ -294,6 +227,7 @@ class Invoice extends \core\base\Api
         if (count($vendors) !== 1) {
             throw new UserException('Vendor harus sama');
         }
+        // invoice for GI
         $released = StockMovement::find()->select('id_movement')
                 ->where([
                     'type_reff' => StockMovement::TYPE_SALES,
@@ -327,8 +261,38 @@ class Invoice extends \core\base\Api
                 'trans_value' => $values[$id]['jml']
             ];
         }
+
+        // Invoice for discount
+        $completed = Sales::find()->select(['id_sales', 'discount'])
+            ->andWhere(['status' => Sales::STATUS_RELEASED, 'id_sales' => $ids])
+            ->andWhere(['<>', 'discount', null])
+            ->asArray()->indexBy('id_sales')
+            ->all();
+        $invoiced = InvoiceDtl::find()->select('id_reff')
+                ->where([
+                    'type_reff' => InvoiceDtl::TYPE_SALES_DISCOUNT,
+                    'id_reff' => array_keys($completed),
+                ])->column();
+        $new = array_diff(array_keys($completed), $invoiced);
+        foreach ($new as $id) {
+            $details[] = [
+                'type_reff' => InvoiceDtl::TYPE_SALES_DISCOUNT,
+                'id_reff' => $id,
+                'trans_value' => -$completed['discount']
+            ];
+        }
+
         $data['details'] = $details;
-        return static::create($data, $model);
+        try {
+            $transaction = Yii::$app->db->beginTransaction();
+            $model = static::create($data, $model);
+            $model = static::post('', [], $model);
+            $transaction->commit();
+            return $model;
+        } catch (\Exception $exc) {
+            $transaction->rollBack();
+            throw $exc;
+        }
     }
 
     public static function post($id, $data, $model = null)

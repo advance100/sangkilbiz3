@@ -34,7 +34,7 @@ class Transfer extends \core\base\Api
      */
     public static function create($data, $model = null)
     {
-        $model = $model ? : new MTransfer();
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');

@@ -12,7 +12,7 @@ use Yii;
  * @property integer $id_uom
  * @property double $qty
  *
- * @property StockOpname $opname
+ * @property StockOpname $stockOpname
  */
 class StockOpnameDtl extends \yii\db\ActiveRecord
 {
@@ -21,7 +21,7 @@ class StockOpnameDtl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'stock_opname_dtl';
+        return '{{%stock_opname_dtl}}';
     }
 
     /**
@@ -52,7 +52,7 @@ class StockOpnameDtl extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getOpname()
+    public function getStockOpname()
     {
         return $this->hasOne(StockOpname::className(), ['id_opname' => 'id_opname']);
     }

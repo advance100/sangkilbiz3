@@ -13,7 +13,7 @@ use Yii;
  * @property integer $id_branch
  * @property string $purchase_date
  * @property double $purchase_value
- * @property double $item_discount
+ * @property double $discount
  * @property integer $status
  * @property string $created_at
  * @property integer $created_by

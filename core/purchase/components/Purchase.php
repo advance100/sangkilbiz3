@@ -41,7 +41,8 @@ class Purchase extends \core\base\Api
      */
     public static function create($data, $model = null)
     {
-        $model = $model ? : new MPurchase();
+        /* @var $model MPurchase */
+        $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MPurchase::SCENARIO_DEFAULT;
         $model->load($data, '');

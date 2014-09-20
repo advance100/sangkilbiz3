@@ -31,7 +31,7 @@ class StockAdjustment extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'stock_adjustment';
+        return '{{%stock_adjustment}}';
     }
 
     /**
