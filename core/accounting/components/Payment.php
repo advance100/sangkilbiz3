@@ -32,74 +32,83 @@ class Payment extends \core\base\Api
         return 'e_payment';
     }
 
+    /**
+     *
+     * @param  type                            $data
+     * @param  \core\accounting\models\Payment $model
+     * @return \core\accounting\models\Payment
+     */
     public static function create($data, $model = null)
     {
+        /* @var $model MPayment */
         $model = $model ? : static::createNewModel();
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                static::trigger('_create', [$model]);
-                $success = $model->save();
-                $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
-                if ($success) {
-                    static::trigger('_created', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('paymentDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
+            static::trigger('_create', [$model]);
+            $success = $model->save();
+            $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
+            if ($success) {
+                static::trigger('_created', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('paymentDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
-        return [$success, $model];
+
+        return static::processOutput($success, $model);
     }
 
+    /**
+     *
+     * @param  string                          $id
+     * @param  array                           $data
+     * @param  \core\accounting\models\Payment $model
+     * @return \core\accounting\models\Payment
+     */
     public static function update($id, $data, $model = null)
     {
+        /* @var $model MPayment */
         $model = $model ? : static::findModel($id);
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                static::trigger('_update', [$model]);
-                $success = $model->save();
-                if (!empty($data['details'])) {
-                    $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
+            static::trigger('_update', [$model]);
+            $success = $model->save();
+            if (!empty($data['details'])) {
+                $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
+            }
+            if ($success) {
+                static::trigger('_updated', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('paymentDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-                if ($success) {
-                    static::trigger('_updated', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('paymentDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
-                }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
-        return [$success, $model];
+
+        return static::processOutput($success, $model);
     }
 
+    /**
+     *
+     * @param  array                           $data
+     * @param  \core\accounting\models\Payment $model
+     * @return \core\accounting\models\Payment
+     * @throws UserException
+     */
     public function createFromInvoice($data, $model = null)
     {
+        /* @var $model MPayment */
         $pay_vals = ArrayHelper::map($data['details'], 'id_invoice', 'value');
         $ids = array_keys($pay_vals);
 
@@ -149,15 +158,23 @@ class Payment extends \core\base\Api
             ];
         }
         $data['details'] = $details;
-        return static::processOutput($success, $model);
+
+        return static::create($data, $model);
     }
-    
-    public static function post($id,$data,$model=null)
+
+    /**
+     *
+     * @param  string                          $id
+     * @param  array                           $data
+     * @param  \core\accounting\models\Payment $model
+     * @return \core\accounting\models\Payment
+     */
+    public static function post($id, $data, $model = null)
     {
         /* @var $model MPayment */
         $model = $model ? : static::findModel($id);
-        $model->load($data,'');
-        
+        $model->load($data, '');
+
         return static::processOutput($success, $model);
     }
 }

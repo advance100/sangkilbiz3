@@ -27,7 +27,7 @@ class StockMovement extends \yii\db\ActiveRecord
     const TYPE_PURCHASE = 100;
     const TYPE_SALES = 200;
     const TYPE_TRANSFER = 300;
-    
+
     const STATUS_OPEN = 1;
     const STATUS_CLOSE = 2;
 

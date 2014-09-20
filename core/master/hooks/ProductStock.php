@@ -32,8 +32,8 @@ class ProductStock extends \yii\base\Behavior
     /**
      *
      * @param  array         $params
-     * Required field id_warehouse, id_product, qty
-     * Optional field app, id_ref, id_uom, item_value
+     *                               Required field id_warehouse, id_product, qty
+     *                               Optional field app, id_ref, id_uom, item_value
      * @return boolean
      * @throws UserException
      */
@@ -119,7 +119,7 @@ class ProductStock extends \yii\base\Behavior
     }
 
     /**
-     * 
+     *
      * @param \core\base\Event $event
      */
     public function stockMovement($event)
@@ -257,7 +257,7 @@ class ProductStock extends \yii\base\Behavior
     }
 
     /**
-     * 
+     *
      * @param \core\base\Event $event
      */
     public function adjustmentApplied($event)

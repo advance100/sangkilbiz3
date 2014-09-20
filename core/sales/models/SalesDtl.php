@@ -23,7 +23,7 @@ use core\master\models\ProductUom;
 class SalesDtl extends \yii\db\ActiveRecord
 {
     /**
-     * @var integer Warehouse for release. 
+     * @var integer Warehouse for release.
      */
     public $id_warehouse;
 
@@ -33,7 +33,7 @@ class SalesDtl extends \yii\db\ActiveRecord
     public $qty_release;
 
     /**
-     * @var integer Uom for receive. 
+     * @var integer Uom for receive.
      */
     public $id_uom_release;
 
@@ -73,6 +73,7 @@ class SalesDtl extends \yii\db\ActiveRecord
                 $scenarios[Sales::SCENARIO_RELEASE][$i] = '!' . $attr;
             }
         }
+
         return $scenarios;
     }
 
@@ -92,14 +93,13 @@ class SalesDtl extends \yii\db\ActiveRecord
     /**
      * Check when purchase is received.
      * Indicated with `qty_receive` is setted.
-     * 
+     *
      * @return boolean
      */
     public function whenReleased()
     {
         return $this->qty_release !== null && $this->qty_release !== '';
     }
-
 
     /**
      * @inheritdoc

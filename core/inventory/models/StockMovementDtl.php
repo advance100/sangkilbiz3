@@ -13,7 +13,7 @@ use Yii;
  * @property double $qty
  * @property double $item_value Use to change cogs item.
  * When `null` mean no change for cogs.
- * @property double $trans_value Transaction value acording with this item. 
+ * @property double $trans_value Transaction value acording with this item.
  * Value can be purchase price or sales price.
  *
  * @property StockMovement $stockMovement

@@ -29,11 +29,11 @@ class Sales extends \core\base\Api
     {
         return 'e_sales';
     }
-    
+
     /**
-     * 
-     * @param array $data
-     * @param \core\sales\models\Sales $model
+     *
+     * @param  array                    $data
+     * @param  \core\sales\models\Sales $model
      * @return \core\sales\models\Sales
      * @throws \Exception
      */
@@ -46,35 +46,28 @@ class Sales extends \core\base\Api
         $model->load($data, '');
         static::trigger('_create', [$model]);
         if (!empty($post['details'])) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                $success = $model->save();
-                $success = $model->saveRelated('salesDtls', $data, $success, 'details');
-                if ($success) {
-                    static::trigger('_created', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('salesDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
+            $success = $model->save();
+            $success = $model->saveRelated('salesDtls', $data, $success, 'details');
+            if ($success) {
+                static::trigger('_created', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('salesDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
+
         return static::processOutput($success, $model);
     }
 
     /**
-     * 
-     * @param string $id
-     * @param array $data
-     * @param \core\sales\models\Sales $model
+     *
+     * @param  string                   $id
+     * @param  array                    $data
+     * @param  \core\sales\models\Sales $model
      * @return \core\sales\models\Sales
      * @throws \Exception
      */
@@ -88,37 +81,30 @@ class Sales extends \core\base\Api
         static::trigger('_update', [$model]);
 
         if (!isset($data['details']) || $data['details'] !== []) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                $success = $model->save();
-                if (!empty($data['details'])) {
-                    $success = $model->saveRelated('salesDtls', $data, $success, 'details');
+            $success = $model->save();
+            if (!empty($data['details'])) {
+                $success = $model->saveRelated('salesDtls', $data, $success, 'details');
+            }
+            if ($success) {
+                static::trigger('_updated', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('salesDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-                if ($success) {
-                    static::trigger('_updated', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('salesDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
-                }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
+
         return static::processOutput($success, $model);
     }
-    
+
     /**
-     * 
-     * @param string $id
-     * @param array $data
-     * @param \core\sales\models\Sales $model
+     *
+     * @param  string                   $id
+     * @param  array                    $data
+     * @param  \core\sales\models\Sales $model
      * @return mixed
      * @throws \Exception
      */
@@ -130,42 +116,35 @@ class Sales extends \core\base\Api
         $model->scenario = MSales::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MSales::STATUS_RELEASE;
-        try {
-            $transaction = Yii::$app->db->beginTransaction();
-            static::trigger('_release', [$model]);
-            $salesDtls = ArrayHelper::index($model->salesDtls,'id_product');
-            if (!empty($data['details'])) {
-                static::trigger('_release_head', [$model]);
-                foreach ($data['details'] as $dataDetail) {
-                    $index = $dataDetail['id_product'];
-                    $detail = $salesDtls[$index];
-                    $detail->scenario = MSales::SCENARIO_RELEASE;
-                    $detail->load($dataDetail, '');
-                    $success = $success && $detail->save();
-                    static::trigger('_release_body', [$model,$detail]);
-                    $salesDtls[$index] = $detail;
-                }
-                $model->populateRelation('salesDtls', array_values($salesDtls));
-                static::trigger('_release_end', [$model]);
+        static::trigger('_release', [$model]);
+        $salesDtls = ArrayHelper::index($model->salesDtls, 'id_product');
+        if (!empty($data['details'])) {
+            static::trigger('_release_head', [$model]);
+            foreach ($data['details'] as $dataDetail) {
+                $index = $dataDetail['id_product'];
+                $detail = $salesDtls[$index];
+                $detail->scenario = MSales::SCENARIO_RELEASE;
+                $detail->load($dataDetail, '');
+                $success = $success && $detail->save();
+                static::trigger('_release_body', [$model, $detail]);
+                $salesDtls[$index] = $detail;
             }
-            $allReleased = true;
-            foreach ($salesDtls as $detail) {
-                $allReleased = $allReleased && $detail->sales_qty == $detail->sales_qty_release;
-            }
-            if($allReleased){
-                $model->status = MSales::STATUS_RELEASED;
-            }
-            if ($success && $model->save()) {
-                static::trigger('_released', [$model]);
-                $transaction->commit();
-            } else {
-                $transaction->rollBack();
-                $success = false;
-            }
-        } catch (\Exception $exc) {
-            $transaction->rollBack();
-            throw $exc;
+            $model->populateRelation('salesDtls', array_values($salesDtls));
+            static::trigger('_release_end', [$model]);
         }
+        $allReleased = true;
+        foreach ($salesDtls as $detail) {
+            $allReleased = $allReleased && $detail->sales_qty == $detail->sales_qty_release;
+        }
+        if ($allReleased) {
+            $model->status = MSales::STATUS_RELEASED;
+        }
+        if ($success && $model->save()) {
+            static::trigger('_released', [$model]);
+        } else {
+            $success = false;
+        }
+
         return static::processOutput($success, $model);
     }
 }

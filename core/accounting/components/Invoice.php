@@ -35,9 +35,9 @@ class Invoice extends \core\base\Api
     }
 
     /**
-     * 
-     * @param array $data
-     * @param \core\accounting\models\Invoice $model
+     *
+     * @param  array                           $data
+     * @param  \core\accounting\models\Invoice $model
      * @return core\accounting\models\Invoice
      * @throws \Exception
      */
@@ -50,41 +50,34 @@ class Invoice extends \core\base\Api
         $model->status = MInvoice::STATUS_DRAFT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                $total = 0;
-                foreach ($data['details'] as $detail) {
-                    $total += $detail['trans_value'];
+            $total = 0;
+            foreach ($data['details'] as $detail) {
+                $total += $detail['trans_value'];
+            }
+            $model->invoice_value = $total;
+            static::trigger('_create', [$model]);
+            $success = $model->save();
+            $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
+            if ($success) {
+                static::trigger('_created', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('invoiveDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-                $model->invoice_value = $total;
-                static::trigger('_create', [$model]);
-                $success = $model->save();
-                $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
-                if ($success) {
-                    static::trigger('_created', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('invoiveDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
-                }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
+
         return static::processOutput($success, $model);
     }
 
     /**
-     * 
-     * @param string $id
-     * @param array $data
-     * @param \core\accounting\models\Invoice $model
+     *
+     * @param  string                          $id
+     * @param  array                           $data
+     * @param  \core\accounting\models\Invoice $model
      * @return core\accounting\models\Invoice
      * @throws \Exception
      */
@@ -96,42 +89,35 @@ class Invoice extends \core\base\Api
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                $total = 0;
-                foreach ($data['details'] as $detail) {
-                    $total += $detail['trans_value'];
+            $total = 0;
+            foreach ($data['details'] as $detail) {
+                $total += $detail['trans_value'];
+            }
+            $model->invoice_value = $total;
+            static::trigger('_update', [$model]);
+            $success = $model->save();
+            if (!empty($data['details'])) {
+                $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
+            }
+            if ($success) {
+                static::trigger('_updated', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('invoiveDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-                $model->invoice_value = $total;
-                static::trigger('_update', [$model]);
-                $success = $model->save();
-                if (!empty($data['details'])) {
-                    $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
-                }
-                if ($success) {
-                    static::trigger('_updated', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('invoiveDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
-                }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
-        return [$success, $model];
+
+        return static::processOutput($success, $model);
     }
 
     /**
-     * 
-     * @param array $data
-     * @param \core\accounting\models\Invoice $model
+     *
+     * @param  array                           $data
+     * @param  \core\accounting\models\Invoice $model
      * @return core\accounting\models\Invoice
      * @throws UserException
      */
@@ -200,21 +186,15 @@ class Invoice extends \core\base\Api
         }
 
         $data['details'] = $details;
-        try {
-            $transaction = Yii::$app->db->beginTransaction();
-            $model = static::create($data, $model);
-            $model = static::post('', [], $model);
-            $transaction->commit();
-            return $model;
-        } catch (\Exception $exc) {
-            $transaction->rollBack();
-            throw $exc;
-        }
+        $model = static::create($data, $model);
+        $model = static::post('', [], $model);
+
+        return $model;
     }
 
     /**
-     * @param array $data
-     * @param \core\accounting\models\Invoice $model
+     * @param  array                           $data
+     * @param  \core\accounting\models\Invoice $model
      * @return \core\accounting\models\Invoice
      * @throws UserException
      */
@@ -283,16 +263,10 @@ class Invoice extends \core\base\Api
         }
 
         $data['details'] = $details;
-        try {
-            $transaction = Yii::$app->db->beginTransaction();
-            $model = static::create($data, $model);
-            $model = static::post('', [], $model);
-            $transaction->commit();
-            return $model;
-        } catch (\Exception $exc) {
-            $transaction->rollBack();
-            throw $exc;
-        }
+        $model = static::create($data, $model);
+        $model = static::post('', [], $model);
+
+        return $model;
     }
 
     public static function post($id, $data, $model = null)
@@ -303,21 +277,14 @@ class Invoice extends \core\base\Api
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MInvoice::STATUS_POSTED;
-        try {
-            $transaction = Yii::$app->db->beginTransaction();
-            static::trigger('_post', [$model]);
-            $success = $model->save();
-            if ($success) {
-                static::trigger('_posted', [$model]);
-                $transaction->commit();
-            } else {
-                $transaction->rollBack();
-                $success = false;
-            }
-        } catch (\Exception $exc) {
-            $transaction->rollBack();
-            throw $exc;
+        static::trigger('_post', [$model]);
+        $success = $model->save();
+        if ($success) {
+            static::trigger('_posted', [$model]);
+        } else {
+            $success = false;
         }
+
         return static::processOutput($success, $model);
     }
 }

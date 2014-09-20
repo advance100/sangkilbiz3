@@ -2,7 +2,6 @@
 
 namespace core\inventory\components;
 
-use Yii;
 use core\inventory\models\StockAdjustment as MStockAdjustment;
 use core\inventory\models\StockOpname;
 use core\master\models\ProductStock;
@@ -16,11 +15,17 @@ use core\master\models\ProductUom;
 class StockAdjustment extends \core\base\Api
 {
 
+    /**
+     * @inheritdoc
+     */
     public static function modelClass()
     {
         return MStockAdjustment::className();
     }
 
+    /**
+     * @inheritdoc
+     */
     public static function prefixEventName()
     {
         return 'e_stock-adjustment';
@@ -28,11 +33,10 @@ class StockAdjustment extends \core\base\Api
 
     /**
      * Create stock adjustment.
-     * 
-     * @param array $data
-     * @param \core\inventory\models\StockAdjustment $model
+     *
+     * @param  array                                  $data
+     * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
-     * @throws \Exception
      */
     public static function create($data, $model = null)
     {
@@ -42,39 +46,31 @@ class StockAdjustment extends \core\base\Api
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                static::trigger('_create', [$model]);
-                $success = $model->save();
-                $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details');
-                if ($success) {
-                    static::trigger('_created', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
+            static::trigger('_create', [$model]);
+            $success = $model->save();
+            $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details');
+            if ($success) {
+                static::trigger('_created', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
+
         return static::processOutput($success, $model);
     }
 
     /**
      * Update stock adjustment.
-     * 
-     * @param string $id
-     * @param array $data
-     * @param \core\inventory\models\StockAdjustment $model
+     *
+     * @param  string                                 $id
+     * @param  array                                  $data
+     * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
-     * @throws \Exception
      */
     public static function update($id, $data, $model = null)
     {
@@ -84,41 +80,33 @@ class StockAdjustment extends \core\base\Api
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
-            try {
-                $transaction = Yii::$app->db->beginTransaction();
-                static::trigger('_update', [$model]);
-                $success = $model->save();
-                if (!empty($data['details'])) {
-                    $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details', MStockAdjustment::SCENARIO_DEFAULT);
+            static::trigger('_update', [$model]);
+            $success = $model->save();
+            if (!empty($data['details'])) {
+                $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details', MStockAdjustment::SCENARIO_DEFAULT);
+            }
+            if ($success) {
+                static::trigger('_updated', [$model]);
+            } else {
+                if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
+                    $model->addError('details', 'Details validation error');
                 }
-                if ($success) {
-                    static::trigger('_updated', [$model]);
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                    if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
-                        $model->addError('details', 'Details validation error');
-                    }
-                }
-            } catch (\Exception $exc) {
-                $transaction->rollBack();
-                throw $exc;
             }
         } else {
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
+
         return static::processOutput($success, $model);
     }
 
     /**
      * Apply stock adjustment
-     * 
-     * @param string $id
-     * @param array $data
-     * @param \core\inventory\models\StockAdjustment $model
+     *
+     * @param  string                                 $id
+     * @param  array                                  $data
+     * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
-     * @throws \Exception
      */
     public static function apply($id, $data = [], $model = null)
     {
@@ -128,29 +116,21 @@ class StockAdjustment extends \core\base\Api
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MStockAdjustment::STATUS_APPLIED;
-        try {
-            $transaction = Yii::$app->db->beginTransaction();
-            static::trigger('_apply', [$model]);
-            $success = $model->save();
-            if ($success) {
-                static::trigger('_applied', [$model]);
-                $transaction->commit();
-            } else {
-                $transaction->rollBack();
-                $success = false;
-            }
-        } catch (\Exception $exc) {
-            $transaction->rollBack();
-            throw $exc;
+        static::trigger('_apply', [$model]);
+        $success = $model->save();
+        if ($success) {
+            static::trigger('_applied', [$model]);
+        } else {
+            $success = false;
         }
 
         return static::processOutput($success, $model);
     }
 
     /**
-     * 
-     * @param StockOpname $opname
-     * @param MStockAdjustment $model
+     *
+     * @param  StockOpname      $opname
+     * @param  MStockAdjustment $model
      * @return mixed
      * @throws \Exception
      */
@@ -182,6 +162,7 @@ class StockAdjustment extends \core\base\Api
             ];
         }
         $data['details'] = $details;
+
         return static::create($data, $model);
     }
 }

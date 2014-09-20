@@ -31,7 +31,7 @@ class GL extends \yii\base\Behavior
     }
 
     /**
-     * 
+     *
      * @param Event $event
      */
     public function invoicePosted($event)
@@ -49,7 +49,7 @@ class GL extends \yii\base\Behavior
     }
 
     /**
-     * 
+     *
      * @param Event $event
      */
     public function paymentPosted($event)

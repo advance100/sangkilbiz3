@@ -21,7 +21,7 @@ use core\master\models\ProductUom;
 class PurchaseDtl extends \yii\db\ActiveRecord
 {
     /**
-     * @var integer Warehouse for receive. 
+     * @var integer Warehouse for receive.
      */
     public $id_warehouse;
 
@@ -31,7 +31,7 @@ class PurchaseDtl extends \yii\db\ActiveRecord
     public $qty_receive;
 
     /**
-     * @var integer Uom for receive. 
+     * @var integer Uom for receive.
      */
     public $id_uom_receive;
 
@@ -71,6 +71,7 @@ class PurchaseDtl extends \yii\db\ActiveRecord
                 $scenarios[Purchase::SCENARIO_RECEIVE][$i] = '!' . $attr;
             }
         }
+
         return $scenarios;
     }
 
@@ -90,7 +91,7 @@ class PurchaseDtl extends \yii\db\ActiveRecord
     /**
      * Check when purchase is received.
      * Indicated with `qty_receive` is setted.
-     * 
+     *
      * @return boolean
      */
     public function whenReceived()

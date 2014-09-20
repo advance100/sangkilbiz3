@@ -7,7 +7,7 @@ use yii\db\ActiveRecord;
 
 /**
  * Api is base class for API.
- * 
+ *
  * Api implements commonly fiture for crud.
  *
  * @author Misbahul D Munir (mdmunir) <misbahuldmunir@gmail.com>
@@ -15,12 +15,12 @@ use yii\db\ActiveRecord;
 class Api
 {
     /**
-     * @var array 
+     * @var array
      */
     private static $_modelClasses = [];
 
     /**
-     * @var array 
+     * @var array
      */
     private static $_prefixEventNames = [];
 
@@ -46,6 +46,7 @@ class Api
         if (!isset(static::$_modelClasses[$class])) {
             static::$_modelClasses[$class] = str_replace('components', 'models', $class);
         }
+
         return static::$_modelClasses[$class];
     }
 
@@ -61,14 +62,15 @@ class Api
             }
             static::$_prefixEventNames[$class] = 'e_' . Inflector::camel2id($class);
         }
+
         return static::$_prefixEventNames[$class];
     }
 
     /**
-     * 
-     * @param boolean $success
+     *
+     * @param boolean      $success
      * @param ActiveRecord $model
-     * 
+     *
      * @return ActiveRecord
      * @throws UnknownErrorException
      */
@@ -77,14 +79,15 @@ class Api
         if (!$success && !$model->hasErrors()) {
             throw new UnknownErrorException('Error with unknown reason.');
         }
+
         return $model;
     }
 
     /**
-     * 
-     * @param array $data
+     *
+     * @param array        $data
      * @param ActiveRecord $model
-     * 
+     *
      * @return ActiveRecord
      */
     public static function create($data, $model = null)
@@ -95,6 +98,7 @@ class Api
         $model->load($data, '');
         if ($model->save()) {
             static::trigger('_created', [$model]);
+
             return $model;
         } else {
             return static::processOutput(false, $model);
@@ -102,10 +106,10 @@ class Api
     }
 
     /**
-     * 
-     * @param string $id
-     * @param array $data
-     * @param ActiveRecord $model
+     *
+     * @param  string       $id
+     * @param  array        $data
+     * @param  ActiveRecord $model
      * @return ActiveRecord
      */
     public static function update($id, $data, $model = null)
@@ -116,6 +120,7 @@ class Api
         $model->load($data, '');
         if ($model->save()) {
             static::trigger('_updated', [$model]);
+
             return $model;
         } else {
             return static::processOutput(false, $model);
@@ -123,9 +128,9 @@ class Api
     }
 
     /**
-     * 
-     * @param string $id
-     * @param ActiveRecord $model
+     *
+     * @param  string       $id
+     * @param  ActiveRecord $model
      * @return boolean
      */
     public static function delete($id, $model = null)
@@ -135,6 +140,7 @@ class Api
         static::trigger('_delete', [$model]);
         if ($model->delete() !== false) {
             static::trigger('_deleted', [$model]);
+
             return true;
         } else {
             return false;
@@ -147,17 +153,17 @@ class Api
      */
     public static function createNewModel()
     {
-        return Yii::createObject(static::modelClass());        
+        return Yii::createObject(static::modelClass());
     }
     /**
      * Returns the data model based on the primary key given.
      * If the data model is not found, a 404 HTTP exception will be raised.
-     * @param string $id the ID of the model to be loaded. If the model has a composite primary key,
-     * the ID must be a string of the primary key values separated by commas.
-     * The order of the primary key values should follow that returned by the `primaryKey()` method
-     * of the model.
-     * @param boolean $throwException
-     * @return ActiveRecord the model found
+     * @param  string            $id             the ID of the model to be loaded. If the model has a composite primary key,
+     *                                           the ID must be a string of the primary key values separated by commas.
+     *                                           The order of the primary key values should follow that returned by the `primaryKey()` method
+     *                                           of the model.
+     * @param  boolean           $throwException
+     * @return ActiveRecord      the model found
      * @throws NotFoundException if the model cannot be found
      */
     public static function findModel($id, $throwException = true)
@@ -176,17 +182,19 @@ class Api
 
         if (isset($model)) {
             static::trigger('_find', [$model]);
+
             return $model;
         } elseif ($throwException) {
             throw new NotFoundException("Object not found: $id");
         }
+
         return null;
     }
 
     /**
      * Trigger event to `Yii::$app`.
      * @param string $name
-     * @param array $params
+     * @param array  $params
      */
     public static function trigger($name, $params = [])
     {

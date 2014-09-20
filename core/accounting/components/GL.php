@@ -31,6 +31,12 @@ class GL extends \core\base\Api
         return 'e_gl';
     }
 
+    /**
+     *
+     * @param  array                            $data
+     * @param  \core\accounting\models\GlHeader $model
+     * @return \core\accounting\models\GlHeader
+     */
     public static function create($data, $model = null)
     {
         /* @var $model GlHeader */
@@ -44,24 +50,16 @@ class GL extends \core\base\Api
                 $amount += $dataDetail['amount'];
             }
             if ($amount == 0) {
-                try {
-                    $transaction = Yii::$app->db->beginTransaction();
                     static::trigger('_create', [$model]);
                     $success = $model->save();
                     $success = $model->saveRelated('glDetails', $data, $success, 'details');
                     if ($success) {
                         static::trigger('_created', [$model]);
-                        $transaction->commit();
                     } else {
-                        $transaction->rollBack();
                         if ($model->hasRelatedErrors('glDetails')) {
                             $model->addError('details', 'Details validation error');
                         }
                     }
-                } catch (\Exception $exc) {
-                    $transaction->rollBack();
-                    throw $exc;
-                }
             } else {
                 $model->validate();
                 $model->addError('details', 'Not balance');
@@ -70,13 +68,21 @@ class GL extends \core\base\Api
             $model->validate();
             $model->addError('details', 'Details cannot be blank');
         }
-        return [$success, $model];
+
+        return static::processOutput($success, $model);
     }
-    
+
+    /**
+     *
+     * @param  array                            $data
+     * @param  \core\accounting\models\GlHeader $model
+     * @return \core\accounting\models\GlHeader
+     * @throws UserException
+     */
     public static function createFromEntrysheet($data,$model=null)
     {
         $es = $data['entry_sheet'];
-        if(!$es instanceof EntriSheet){
+        if (!$es instanceof EntriSheet) {
             $es = EntriSheet::findOne($es);
         }
         $values = $data['values'];
@@ -84,24 +90,25 @@ class GL extends \core\base\Api
         $details = [];
         foreach ($es->entriSheetDtls as $esDetail) {
             $nm = $esDetail->cd_esheet_dtl;
-            if(isset($values[$nm])){
+            if (isset($values[$nm])) {
                 $details[] = [
                     'id_coa' => $esDetail->id_coa,
                     'amount' => $values[$nm]
                 ];
-            }  else {
+            } else {
                 throw new UserException("Required account \"$nm\" ");
             }
         }
         $data['details'] = $details;
+
         return static::processOutput($success, $model);
     }
-    
+
     public static function update($id, $data, $model = null)
     {
         throw new NotSupportedException();
     }
-    
+
     public static function delete($id, $model = null)
     {
         throw new NotSupportedException();
