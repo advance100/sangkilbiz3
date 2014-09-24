@@ -8,7 +8,7 @@ use core\accounting\models\InvoiceDtl;
 use core\purchase\models\Purchase;
 use core\sales\models\Sales;
 use yii\base\UserException;
-use core\inventory\models\StockMovement;
+use core\inventory\models\GoodMovement;
 
 /**
  * Description of Invoice
@@ -131,9 +131,9 @@ class Invoice extends \core\base\Api
             throw new UserException('Vendor harus sama');
         }
         // invoice for GR
-        $received = StockMovement::find()->select('id_movement')
+        $received = GoodMovement::find()->select('id_movement')
                 ->where([
-                    'type_reff' => StockMovement::TYPE_PURCHASE,
+                    'type_reff' => GoodMovement::TYPE_PURCHASE,
                     'id_reff' => $ids
                 ])->column();
         $invoiced = InvoiceDtl::find()->select('id_reff')
@@ -142,14 +142,14 @@ class Invoice extends \core\base\Api
                     'id_reff' => $received,
                 ])->column();
         $new = array_diff($received, $invoiced);
-        $values = StockMovement::find()
-                ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
-                ->joinWith('stockMovementDtls')
+        $values = GoodMovement::find()
+                ->select(['{{%good_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->joinWith('goodMovementDtls')
                 ->andWhere([
-                    '{{%stock_movement}}.type_reff' => StockMovement::TYPE_PURCHASE,
-                    '{{%stock_movement}}.id_reff' => $new
+                    '{{%good_movement}}.type_reff' => GoodMovement::TYPE_PURCHASE,
+                    '{{%good_movement}}.id_reff' => $new
                 ])
-                ->groupBy('{{%stock_movement}}.id_movement')
+                ->groupBy('{{%good_movement}}.id_movement')
                 ->indexBy('id_movement')
                 ->asArray()->all();
 
@@ -208,9 +208,9 @@ class Invoice extends \core\base\Api
             throw new UserException('Vendor harus sama');
         }
         // invoice for GI
-        $released = StockMovement::find()->select('id_movement')
+        $released = GoodMovement::find()->select('id_movement')
                 ->where([
-                    'type_reff' => StockMovement::TYPE_SALES,
+                    'type_reff' => GoodMovement::TYPE_SALES,
                     'id_reff' => $ids
                 ])->column();
         $invoiced = InvoiceDtl::find()->select('id_reff')
@@ -219,14 +219,14 @@ class Invoice extends \core\base\Api
                     'id_reff' => $released,
                 ])->column();
         $new = array_diff($released, $invoiced);
-        $values = StockMovement::find()
-                ->select(['{{%stock_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
-                ->joinWith('stockMovementDtls')
+        $values = GoodMovement::find()
+                ->select(['{{%good_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
+                ->joinWith('goodMovementDtls')
                 ->where([
-                    '{{%stock_movement}}.type_reff' => StockMovement::TYPE_SALES,
-                    '{{%stock_movement}}.id_reff' => $new
+                    '{{%good_movement}}.type_reff' => GoodMovement::TYPE_SALES,
+                    '{{%good_movement}}.id_reff' => $new
                 ])
-                ->groupBy('{{%stock_movement}}.id_movement')
+                ->groupBy('{{%good_movement}}.id_movement')
                 ->indexBy('id_movement')
                 ->asArray()->all();
 

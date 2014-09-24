@@ -19,7 +19,7 @@ class ProductStock extends \yii\base\Behavior
     public function events()
     {
         return [
-            'e_stock-movement_created' => 'stockMovement',
+            'e_good-movement_created' => 'goodMovement',
             'e_purchase_receive_body' => 'purchaseReceiveBody',
             'e_sales_release_body' => 'salesReleaseBody',
             'e_transfer_release_body' => 'transferReleaseBody',
@@ -119,19 +119,20 @@ class ProductStock extends \yii\base\Behavior
     }
 
     /**
-     *
+     * Handler for Good Movement created.
+     * It used to update stock
      * @param \core\base\Event $event
      */
-    public function stockMovement($event)
+    public function goodMovement($event)
     {
-        /* @var $model \core\inventory\models\StockMovement */
+        /* @var $model \core\inventory\models\GoodMovement */
         $model = $event->params[0];
-        foreach ($model->stockMovementDtls as $detail) {
+        foreach ($model->goodMovementDtls as $detail) {
             $this->updateStock([
                 'id_warehouse' => $detail->id_warehouse,
                 'id_product' => $detail->id_product,
                 'qty' => $detail->purch_qty,
-                'app' => 'stock_movement',
+                'app' => 'good_movement',
                 'price' => $detail->item_value,
                 'id_ref' => $detail->id_movement,
             ]);
@@ -144,7 +145,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function purchaseReceiveBody($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $detail \core\purchase\models\PurchaseDtl */
@@ -166,7 +167,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function salesReleaseBody($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $detail \core\sales\models\SalesDtl */
@@ -187,7 +188,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function transferReleaseBody($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $detail \core\inventory\models\TransferDtl */
@@ -208,7 +209,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function transferReceiveBody($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $detail \core\inventory\models\TransferDtl */
@@ -229,7 +230,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function transferCompleteBody($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $detail \core\inventory\models\TransferDtl */
@@ -262,7 +263,7 @@ class ProductStock extends \yii\base\Behavior
      */
     public function adjustmentApplied($event)
     {
-        if (isset($event->sender->stockMovementImplemented)) {
+        if (isset($event->sender->goodMovementImplemented)) {
             return;
         }
         /* @var $model \core\inventory\models\StockAdjustment */

@@ -50,16 +50,16 @@ class GL extends \core\base\Api
                 $amount += $dataDetail['amount'];
             }
             if ($amount == 0) {
-                    static::trigger('_create', [$model]);
-                    $success = $model->save();
-                    $success = $model->saveRelated('glDetails', $data, $success, 'details');
-                    if ($success) {
-                        static::trigger('_created', [$model]);
-                    } else {
-                        if ($model->hasRelatedErrors('glDetails')) {
-                            $model->addError('details', 'Details validation error');
-                        }
+                static::trigger('_create', [$model]);
+                $success = $model->save();
+                $success = $model->saveRelated('glDetails', $data, $success, 'details');
+                if ($success) {
+                    static::trigger('_created', [$model]);
+                } else {
+                    if ($model->hasRelatedErrors('glDetails')) {
+                        $model->addError('details', 'Details validation error');
                     }
+                }
             } else {
                 $model->validate();
                 $model->addError('details', 'Not balance');
@@ -79,14 +79,14 @@ class GL extends \core\base\Api
      * @return \core\accounting\models\GlHeader
      * @throws UserException
      */
-    public static function createFromEntrysheet($data,$model=null)
+    public static function createFromEntrysheet($data, $model = null)
     {
         $es = $data['entry_sheet'];
         if (!$es instanceof EntriSheet) {
             $es = EntriSheet::findOne($es);
         }
         $values = $data['values'];
-        unset($data['entry_sheet'],$data['values']);
+        unset($data['entry_sheet'], $data['values']);
         $details = [];
         foreach ($es->entriSheetDtls as $esDetail) {
             $nm = $esDetail->cd_esheet_dtl;
@@ -95,13 +95,11 @@ class GL extends \core\base\Api
                     'id_coa' => $esDetail->id_coa,
                     'amount' => $values[$nm]
                 ];
-            } else {
-                throw new UserException("Required account \"$nm\" ");
             }
         }
         $data['details'] = $details;
 
-        return static::processOutput($success, $model);
+        return static::create($data, $model);
     }
 
     public static function update($id, $data, $model = null)

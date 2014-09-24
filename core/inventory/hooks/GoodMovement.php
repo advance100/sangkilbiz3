@@ -4,8 +4,8 @@ namespace core\inventory\hooks;
 
 use Yii;
 use core\base\Event;
-use core\inventory\models\StockMovement as MStockMovement;
-use core\inventory\components\StockMovement as ApiStockMovement;
+use core\inventory\models\GoodMovement as MGoodMovement;
+use core\inventory\components\GoodMovement as ApiGoodMovement;
 use core\purchase\models\Purchase;
 use core\sales\models\Sales;
 use core\inventory\models\Transfer;
@@ -18,9 +18,9 @@ use core\inventory\models\StockAdjustment;
  *
  * @author MDMunir
  */
-class StockMovement extends \yii\base\Behavior
+class GoodMovement extends \yii\base\Behavior
 {
-    public $stockMovementImplemented = true;
+    public $goodMovementImplemented = true;
 
     public function events()
     {
@@ -36,8 +36,8 @@ class StockMovement extends \yii\base\Behavior
 
     protected function createMovementDoc($data)
     {
-        /* @var $model MStockMovement */
-        $model = ApiStockMovement::create($data);
+        /* @var $model MGoodMovement */
+        $model = ApiGoodMovement::create($data);
         if ($model->hasErrors) {
             throw new UserException(implode("\n", $model->firstErrors));
         }
@@ -52,7 +52,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model Purchase */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_PURCHASE,
+            'movement_type' => MGoodMovement::TYPE_PURCHASE,
             'id_reff' => $model->id_purchase
         ];
         $data['details'] = [];
@@ -84,7 +84,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model Sales */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_SALES,
+            'movement_type' => MGoodMovement::TYPE_SALES,
             'id_reff' => $model->id_sales
         ];
         $data['details'] = [];
@@ -115,7 +115,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model Transfer */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_TRANSFER_RELEASE,
+            'movement_type' => MGoodMovement::TYPE_TRANSFER_RELEASE,
             'id_reff' => $model->id_transfer
         ];
         $data['details'] = [];
@@ -146,7 +146,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model Transfer */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_TRANSFER_RECEIVE,
+            'movement_type' => MGoodMovement::TYPE_TRANSFER_RECEIVE,
             'id_reff' => $model->id_transfer
         ];
         $data['details'] = [];
@@ -177,7 +177,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model Transfer */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_TRANSFER_COMPLETE,
+            'movement_type' => MGoodMovement::TYPE_TRANSFER_COMPLETE,
             'id_reff' => $model->id_transfer
         ];
         $data['details'] = [];
@@ -219,7 +219,7 @@ class StockMovement extends \yii\base\Behavior
         /* @var $model StockAdjustment */
         $model = $event->params[0];
         $data = [
-            'movement_type' => MStockMovement::TYPE_ADJUSTMENT,
+            'movement_type' => MGoodMovement::TYPE_ADJUSTMENT,
             'id_reff' => $model->id_adjustment
         ];
         $data['details'] = [];

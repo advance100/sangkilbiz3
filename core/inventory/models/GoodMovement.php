@@ -5,7 +5,7 @@ namespace core\inventory\models;
 use Yii;
 
 /**
- * This is the model class for table "stock_movement".
+ * This is the model class for table "good_movement".
  *
  * @property integer $id_movement
  * @property string $movement_num
@@ -20,9 +20,9 @@ use Yii;
  * @property string $updated_at
  * @property integer $updated_by
  *
- * @property StockMovementDtl[] $stockMovementDtls
+ * @property GoodMovementDtl[] $goodMovementDtls
  */
-class StockMovement extends \yii\db\ActiveRecord
+class GoodMovement extends \yii\db\ActiveRecord
 {
     const TYPE_PURCHASE = 100;
     const TYPE_SALES = 200;
@@ -36,7 +36,7 @@ class StockMovement extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%stock_movement}}';
+        return '{{%good_movement}}';
     }
 
     /**
@@ -77,8 +77,8 @@ class StockMovement extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getStockMovementDtls()
+    public function getGoodMovementDtls()
     {
-        return $this->hasMany(StockMovementDtl::className(), ['id_movement' => 'id_movement']);
+        return $this->hasMany(GoodMovementDtl::className(), ['id_movement' => 'id_movement']);
     }
 }

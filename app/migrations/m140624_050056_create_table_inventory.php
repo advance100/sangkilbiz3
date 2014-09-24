@@ -89,7 +89,7 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'FOREIGN KEY (id_adjustment) REFERENCES {{%stock_adjustment}} (id_adjustment) ON DELETE CASCADE ON UPDATE CASCADE',
             ], $tableOptions);
 
-        $this->createTable('{{%stock_movement}}', [
+        $this->createTable('{{%good_movement}}', [
             'id_movement' => Schema::TYPE_PK,
             'movement_num' => Schema::TYPE_STRING . '(16) NOT NULL',
             'movement_date' => Schema::TYPE_DATE . ' NOT NULL',
@@ -105,7 +105,7 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'updated_by' => Schema::TYPE_INTEGER . ' NOT NULL',
             ], $tableOptions);
 
-        $this->createTable('{{%stock_movement_dtl}}', [
+        $this->createTable('{{%good_movement_dtl}}', [
             'id_movement' => Schema::TYPE_INTEGER . ' NOT NULL',
             'id_warehouse' => Schema::TYPE_INTEGER . ' NOT NULL',
             'id_product' => Schema::TYPE_INTEGER . ' NOT NULL',
@@ -114,12 +114,23 @@ class m140624_050056_create_table_inventory extends \yii\db\Migration
             'trans_value' => Schema::TYPE_FLOAT,
             // constrain
             'PRIMARY KEY (id_movement , id_warehouse, id_product)',
-            'FOREIGN KEY (id_movement) REFERENCES {{%stock_movement}} (id_movement) ON DELETE CASCADE ON UPDATE CASCADE',
+            'FOREIGN KEY (id_movement) REFERENCES {{%good_movement}} (id_movement) ON DELETE CASCADE ON UPDATE CASCADE',
             ], $tableOptions);
+
+        $this->createTable('{{%product_stock_history}}', [
+            'stock_time' => Schema::TYPE_TIMESTAMP . ' NOT NULL',
+            'id_warehouse' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'id_product' => Schema::TYPE_INTEGER . ' NOT NULL',
+            'qty_stock' => Schema::TYPE_INTEGER . ' NOT NULL',
+            // constrain
+            'PRIMARY KEY (stock_time, id_warehouse , id_product )',
+        ], $tableOptions);
     }
 
     public function safeDown()
     {
+        $this->dropTable('{{%product_stock_history}}');
+        
         $this->dropTable('{{%stock_movement_dtl}}');
         $this->dropTable('{{%stock_movement}}');
         

@@ -3,15 +3,15 @@
 namespace core\inventory\components;
 
 use Yii;
-use core\inventory\models\StockMovement as MStockMovement;
+use core\inventory\models\GoodMovement as MGoodMovement;
 use yii\base\NotSupportedException;
 
 /**
- * Description of StockMovement
+ * Description of GoodMovement
  *
  * @author Misbahul D Munir (mdmunir) <misbahuldmunir@gmail.com>
  */
-class StockMovement extends \core\base\Api
+class GoodMovement extends \core\base\Api
 {
 
     /**
@@ -19,7 +19,7 @@ class StockMovement extends \core\base\Api
      */
     public static function modelClass()
     {
-        return MStockMovement::className();
+        return MGoodMovement::className();
     }
 
     /**
@@ -27,30 +27,30 @@ class StockMovement extends \core\base\Api
      */
     public static function prefixEventName()
     {
-        return 'e_stock-movement';
+        return 'e_good-movement';
     }
 
     /**
      *
      * @param  array                                $data
-     * @param  \core\inventory\models\StockMovement $model
-     * @return \core\inventory\models\StockMovement
+     * @param  \core\inventory\models\GoodMovement $model
+     * @return \core\inventory\models\GoodMovement
      */
     public static function create($data, $model = null)
     {
-        /* @var $model MStockMovement */
+        /* @var $model MGoodMovement */
         $model = $model ? : static::createNewModel();
         $success = false;
-        $model->scenario = MStockMovement::SCENARIO_DEFAULT;
+        $model->scenario = MGoodMovement::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
             static::trigger('_create', [$model]);
             $success = $model->save();
-            $success = $model->saveRelated('stockMovementDtls', $data, $success, 'details');
+            $success = $model->saveRelated('goodMovementDtls', $data, $success, 'details');
             if ($success) {
                 static::trigger('_created', [$model]);
             } else {
-                if ($model->hasRelatedErrors('stockMovementDtls')) {
+                if ($model->hasRelatedErrors('goodMovementDtls')) {
                     $model->addError('details', 'Details validation error');
                 }
             }
