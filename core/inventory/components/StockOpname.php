@@ -14,22 +14,17 @@ use yii\helpers\ArrayHelper;
  */
 class StockOpname extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\inventory\models\StockOpname';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MStockOpname::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_stock-opname';
-    }
+    public $prefixEventName = 'e_stock-opname';
 
     /**
      *
@@ -37,19 +32,19 @@ class StockOpname extends \core\base\Api
      * @param  \core\inventory\models\StockOpname $model
      * @return \core\inventory\models\StockOpname
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MStockOpname */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MStockOpname::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('goodMovementDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('goodMovementDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -60,7 +55,7 @@ class StockOpname extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -69,14 +64,14 @@ class StockOpname extends \core\base\Api
      * @param  \core\inventory\models\StockOpname $model
      * @return \core\inventory\models\StockOpname
      */
-    public static function append($id, $data, $model = null)
+    public function append($id, $data, $model = null)
     {
         /* @var $model MStockOpname */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = true;
         $model->scenario = MStockOpname::SCENARIO_DEFAULT;
         $model->load($data, '');
-        static::trigger('_append', [$model]);
+        $this->fire('_append', [$model]);
         $success = $model->save();
         $stockOpnameDtls = ArrayHelper::index($model->stockOpnameDtls, 'id_product');
         foreach ($data['details'] as $dataDetail) {
@@ -94,13 +89,13 @@ class StockOpname extends \core\base\Api
             $detail->qty += $dataDetail['qty'];
             $success = $success && $detail->save();
             $stockOpnameDtls[$index] = $detail;
-            static::trigger('_append_body', [$model, $detail]);
+            $this->fire('_append_body', [$model, $detail]);
         }
         $model->populateRelation('stockOpnameDtls', array_values($stockOpnameDtls));
         if ($success) {
-            static::trigger('_appended', [$model]);
+            $this->fire('_appended', [$model]);
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

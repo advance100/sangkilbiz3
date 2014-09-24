@@ -14,22 +14,17 @@ use core\master\models\ProductUom;
  */
 class StockAdjustment extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\inventory\models\StockAdjustment';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MStockAdjustment::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_stock-adjustment';
-    }
+    public $prefixEventName = 'e_stock-adjustment';
 
     /**
      * Create stock adjustment.
@@ -38,19 +33,19 @@ class StockAdjustment extends \core\base\Api
      * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MStockAdjustment */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -61,7 +56,7 @@ class StockAdjustment extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -72,21 +67,21 @@ class StockAdjustment extends \core\base\Api
      * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         /* @var $model MStockAdjustment */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
-            static::trigger('_update', [$model]);
+            $this->fire('_update', [$model]);
             $success = $model->save();
             if (!empty($data['details'])) {
                 $success = $model->saveRelated('stockAdjustmentDtls', $data, $success, 'details', MStockAdjustment::SCENARIO_DEFAULT);
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('stockAdjustmentDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -97,7 +92,7 @@ class StockAdjustment extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -108,23 +103,23 @@ class StockAdjustment extends \core\base\Api
      * @param  \core\inventory\models\StockAdjustment $model
      * @return \core\inventory\models\StockAdjustment
      */
-    public static function apply($id, $data = [], $model = null)
+    public function apply($id, $data = [], $model = null)
     {
         /* @var $model MStockAdjustment */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = false;
         $model->scenario = MStockAdjustment::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MStockAdjustment::STATUS_APPLIED;
-        static::trigger('_apply', [$model]);
+        $this->fire('_apply', [$model]);
         $success = $model->save();
         if ($success) {
-            static::trigger('_applied', [$model]);
+            $this->fire('_applied', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -134,7 +129,7 @@ class StockAdjustment extends \core\base\Api
      * @return mixed
      * @throws \Exception
      */
-    public static function createFromOpname($opname, $model = null)
+    public function createFromOpname($opname, $model = null)
     {
         // info product
         $currentStocks = ProductStock::find()->select(['id_product', 'qty_stock'])
@@ -163,6 +158,6 @@ class StockAdjustment extends \core\base\Api
         }
         $data['details'] = $details;
 
-        return static::create($data, $model);
+        return $this->create($data, $model);
     }
 }

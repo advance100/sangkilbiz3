@@ -1,6 +1,6 @@
 <?php
 
-namespace rest\base;
+namespace core\base\rest;
 
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -16,8 +16,7 @@ class IndexAction extends Action
     
     public function run()
     {
-        $helperClass = $this->helperClass;
-        $helperClass::trigger('_list');
+        $this->api->fire('_list');
         return $this->prepareDataProvider();
     }
 
@@ -32,8 +31,7 @@ class IndexAction extends Action
         }
 
         /* @var $modelClass \yii\db\BaseActiveRecord */
-        $helperClass = $this->helperClass;
-        $modelClass = $helperClass::modelClass();
+        $modelClass = $this->api->modelClass;
         return new ActiveDataProvider([
             'query' => $modelClass::find()
         ]);

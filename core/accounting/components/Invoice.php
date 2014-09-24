@@ -17,22 +17,17 @@ use core\inventory\models\GoodMovement;
  */
 class Invoice extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\accounting\models\Invoice';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MInvoice::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_invoice';
-    }
+    public $prefixEventName = 'e_invoice';
 
     /**
      *
@@ -41,10 +36,10 @@ class Invoice extends \core\base\Api
      * @return core\accounting\models\Invoice
      * @throws \Exception
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MInvoice */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->status = MInvoice::STATUS_DRAFT;
@@ -55,11 +50,11 @@ class Invoice extends \core\base\Api
                 $total += $detail['trans_value'];
             }
             $model->invoice_value = $total;
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('invoiveDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -70,7 +65,7 @@ class Invoice extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -81,10 +76,10 @@ class Invoice extends \core\base\Api
      * @return core\accounting\models\Invoice
      * @throws \Exception
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         /* @var $model MInvoice */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = false;
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->load($data, '');
@@ -94,13 +89,13 @@ class Invoice extends \core\base\Api
                 $total += $detail['trans_value'];
             }
             $model->invoice_value = $total;
-            static::trigger('_update', [$model]);
+            $this->fire('_update', [$model]);
             $success = $model->save();
             if (!empty($data['details'])) {
                 $success = $model->saveRelated('invoiveDtls', $data, $success, 'details');
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('invoiveDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -111,7 +106,7 @@ class Invoice extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -121,7 +116,7 @@ class Invoice extends \core\base\Api
      * @return core\accounting\models\Invoice
      * @throws UserException
      */
-    public static function createFromPurchase($data, $model = null)
+    public function createFromPurchase($data, $model = null)
     {
         $ids = (array) $data['id_purchase'];
         $vendors = Purchase::find()->select('id_supplier')
@@ -186,8 +181,8 @@ class Invoice extends \core\base\Api
         }
 
         $data['details'] = $details;
-        $model = static::create($data, $model);
-        $model = static::post('', [], $model);
+        $model = $this->create($data, $model);
+        $model = $this->post('', [], $model);
 
         return $model;
     }
@@ -198,7 +193,7 @@ class Invoice extends \core\base\Api
      * @return \core\accounting\models\Invoice
      * @throws UserException
      */
-    public static function createFromSales($data, $model = null)
+    public function createFromSales($data, $model = null)
     {
         $ids = (array) $data['id_sales'];
         $vendors = Sales::find()->select('id_customer')
@@ -263,8 +258,8 @@ class Invoice extends \core\base\Api
         }
 
         $data['details'] = $details;
-        $model = static::create($data, $model);
-        $model = static::post('', [], $model);
+        $model = $this->create($data, $model);
+        $model = $this->post('', [], $model);
 
         return $model;
     }
@@ -272,19 +267,19 @@ class Invoice extends \core\base\Api
     public static function post($id, $data, $model = null)
     {
         /* @var $model MInvoice */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = false;
         $model->scenario = MInvoice::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MInvoice::STATUS_POSTED;
-        static::trigger('_post', [$model]);
+        $this->fire('_post', [$model]);
         $success = $model->save();
         if ($success) {
-            static::trigger('_posted', [$model]);
+            $this->fire('_posted', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

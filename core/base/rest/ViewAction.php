@@ -1,6 +1,6 @@
 <?php
 
-namespace rest\base;
+namespace core\base\rest;
 
 use Yii;
 
@@ -14,9 +14,8 @@ class ViewAction extends Action
 
     public function run($id)
     {
-        $helperClass = $this->helperClass;
-        $model = $helperClass::findModel($id);
-        $helperClass::trigger('_view', [$model]);
+        $model = $this->api->findModel($id);
+        $this->api->fire('_view', [$model]);
         return $model;
     }
 }

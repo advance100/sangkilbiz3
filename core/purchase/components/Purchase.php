@@ -13,22 +13,17 @@ use yii\helpers\ArrayHelper;
  */
 class Purchase extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\purchase\models\Purchase';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MPurchase::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_purchase';
-    }
+    public $prefixEventName = 'e_purchase';
 
     /**
      * Use to create purchase.
@@ -39,20 +34,20 @@ class Purchase extends \core\base\Api
      * @return \core\purchase\models\Purchase
      * @throws \Exception
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MPurchase */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MPurchase::SCENARIO_DEFAULT;
         $model->load($data, '');
 
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('purchaseDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
                 $transaction->commit();
             } else {
                 if ($model->hasRelatedErrors('purchaseDtls')) {
@@ -64,7 +59,7 @@ class Purchase extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -76,22 +71,22 @@ class Purchase extends \core\base\Api
      * @return \core\purchase\models\Purchase
      * @throws \Exception
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = false;
         $model->scenario = MPurchase::SCENARIO_DEFAULT;
         $model->load($data, '');
 
         if (!isset($data['details']) || $data['details'] !== []) {
-            static::trigger('_update', [$model]);
+            $this->fire('_update', [$model]);
             $success = $model->save();
             if (!empty($data['details'])) {
                 $success = $model->saveRelated('purchaseDtls', $data, $success, 'details');
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('purchaseDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -102,7 +97,7 @@ class Purchase extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -113,29 +108,29 @@ class Purchase extends \core\base\Api
      * @return \core\purchase\models\Purchase
      * @throws \Exception
      */
-    public static function receive($id, $data = [], $model = null)
+    public function receive($id, $data = [], $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = true;
         $model->scenario = MPurchase::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MPurchase::STATUS_RECEIVE;
-        static::trigger('_receive', [$model]);
+        $this->fire('_receive', [$model]);
         $purchaseDtls = ArrayHelper::index($model->purchaseDtls, 'id_product');
         if (!empty($data['details'])) {
-            static::trigger('_receive_head', [$model]);
+            $this->fire('_receive_head', [$model]);
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product'];
                 $detail = $purchaseDtls[$index];
                 $detail->scenario = MPurchase::SCENARIO_RECEIVE;
                 $detail->load($dataDetail, '');
                 $success = $success && $detail->save();
-                static::trigger('_receive_body', [$model, $detail]);
+                $this->fire('_receive_body', [$model, $detail]);
                 $purchaseDtls[$index] = $detail;
             }
             $model->populateRelation('purchaseDtls', array_values($purchaseDtls));
-            static::trigger('_receive_end', [$model]);
+            $this->fire('_receive_end', [$model]);
         }
         $allReceived = true;
         foreach ($purchaseDtls as $detail) {
@@ -145,11 +140,11 @@ class Purchase extends \core\base\Api
             $model->status = MPurchase::STATUS_RECEIVED;
         }
         if ($success && $model->save()) {
-            static::trigger('_received', [$model]);
+            $this->fire('_received', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

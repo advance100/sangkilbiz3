@@ -15,22 +15,17 @@ use yii\base\UserException;
  */
 class Payment extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\accounting\models\Payment';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MPayment::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_payment';
-    }
+    public $prefixEventName = 'e_payment';
 
     /**
      *
@@ -38,19 +33,19 @@ class Payment extends \core\base\Api
      * @param  \core\accounting\models\Payment $model
      * @return \core\accounting\models\Payment
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MPayment */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('paymentDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -61,7 +56,7 @@ class Payment extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -71,21 +66,21 @@ class Payment extends \core\base\Api
      * @param  \core\accounting\models\Payment $model
      * @return \core\accounting\models\Payment
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         /* @var $model MPayment */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $success = false;
         $model->scenario = MPayment::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!isset($data['details']) || $data['details'] !== []) {
-            static::trigger('_update', [$model]);
+            $this->fire('_update', [$model]);
             $success = $model->save();
             if (!empty($data['details'])) {
                 $success = $model->saveRelated('paymentDtls', $data, $success, 'details');
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('paymentDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -96,7 +91,7 @@ class Payment extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -159,7 +154,7 @@ class Payment extends \core\base\Api
         }
         $data['details'] = $details;
 
-        return static::create($data, $model);
+        return $this->create($data, $model);
     }
 
     /**
@@ -169,12 +164,12 @@ class Payment extends \core\base\Api
      * @param  \core\accounting\models\Payment $model
      * @return \core\accounting\models\Payment
      */
-    public static function post($id, $data, $model = null)
+    public function post($id, $data, $model = null)
     {
         /* @var $model MPayment */
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
         $model->load($data, '');
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

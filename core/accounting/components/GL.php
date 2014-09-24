@@ -14,22 +14,17 @@ use yii\base\NotSupportedException;
  */
 class GL extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\accounting\models\GlHeader';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return GlHeader::className();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function prefixEventName()
-    {
-        return 'e_gl';
-    }
+    public $prefixEventName = 'e_gl';
 
     /**
      *
@@ -37,10 +32,10 @@ class GL extends \core\base\Api
      * @param  \core\accounting\models\GlHeader $model
      * @return \core\accounting\models\GlHeader
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model GlHeader */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = GlHeader::SCENARIO_DEFAULT;
         $model->load($data, '');
@@ -50,11 +45,11 @@ class GL extends \core\base\Api
                 $amount += $dataDetail['amount'];
             }
             if ($amount == 0) {
-                static::trigger('_create', [$model]);
+                $this->fire('_create', [$model]);
                 $success = $model->save();
                 $success = $model->saveRelated('glDetails', $data, $success, 'details');
                 if ($success) {
-                    static::trigger('_created', [$model]);
+                    $this->fire('_created', [$model]);
                 } else {
                     if ($model->hasRelatedErrors('glDetails')) {
                         $model->addError('details', 'Details validation error');
@@ -69,7 +64,7 @@ class GL extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -79,7 +74,7 @@ class GL extends \core\base\Api
      * @return \core\accounting\models\GlHeader
      * @throws UserException
      */
-    public static function createFromEntrysheet($data, $model = null)
+    public function createFromEntrysheet($data, $model = null)
     {
         $es = $data['entry_sheet'];
         if (!$es instanceof EntriSheet) {
@@ -99,15 +94,15 @@ class GL extends \core\base\Api
         }
         $data['details'] = $details;
 
-        return static::create($data, $model);
+        return $this->create($data, $model);
     }
 
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         throw new NotSupportedException();
     }
 
-    public static function delete($id, $model = null)
+    public function delete($id, $model = null)
     {
         throw new NotSupportedException();
     }

@@ -1,26 +1,47 @@
 <?php
 
-namespace rest\base;
+namespace core\base\rest;
 
 use Yii;
 use yii\helpers\Url;
+use yii\helpers\Inflector;
 
 /**
  * Description of CreateAction
  *
  * @author Misbahul D Munir (mdmunir) <misbahuldmunir@gmail.com>
  */
-class CreateAction extends Action
+class CustomCreateAction extends Action
 {
+    /**
+     *
+     * @var string 
+     */
     public $viewAction = 'view';
+
+    /**
+     *
+     * @var string 
+     */
+    public $action;
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        parent::init();
+        if ($this->action === null) {
+            $this->action = Inflector::id2camel($this->id);
+        }
+    }
 
     public function run()
     {
         /* @var $model \yii\db\ActiveRecord */
-        $helperClass = $this->helperClass;
         try {
             $transaction = Yii::$app->db->beginTransaction();
-            $model = $helperClass::create(Yii::$app->getRequest()->getBodyParams());
+            $model = call_user_func([$this->api, $this->action], Yii::$app->getRequest()->getBodyParams());
             if (!$model->hasErrors()) {
                 $transaction->commit();
                 $response = Yii::$app->getResponse();

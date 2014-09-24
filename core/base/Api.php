@@ -4,6 +4,8 @@ namespace core\base;
 
 use Yii;
 use yii\db\ActiveRecord;
+use yii\base\InvalidConfigException;
+use yii\helpers\Inflector;
 
 /**
  * Api is base class for API.
@@ -12,58 +14,39 @@ use yii\db\ActiveRecord;
  *
  * @author Misbahul D Munir (mdmunir) <misbahuldmunir@gmail.com>
  */
-class Api
+class Api extends \yii\base\Object
 {
     /**
-     * @var array
+     *
+     * @var string 
      */
-    private static $_modelClasses = [];
+    public $modelClass;
 
     /**
-     * @var array
+     *
+     * @var string 
      */
-    private static $_prefixEventNames = [];
+    public $prefixEventName;
 
     /**
-     * Returns the fully qualified name of this class.
-     * @return string the fully qualified name of this class.
+     * 
      */
-    public static function className()
+    public function init()
     {
-        return get_called_class();
-    }
-
-    /**
-     * Declares the class name of model associated with this API class.
-     * By default this method returns the class name and replace word "components"
-     * with word "models". You may override this method
-     * if the class name is not named after this convention.
-     * @return string the class name
-     */
-    public static function modelClass()
-    {
-        $class = static::className();
-        if (!isset(static::$_modelClasses[$class])) {
-            static::$_modelClasses[$class] = str_replace('components', 'models', $class);
-        }
-
-        return static::$_modelClasses[$class];
-    }
-
-    /**
-     * @return string prefix event name
-     */
-    public static function prefixEventName()
-    {
-        $class = static::className();
-        if (!isset(static::$_prefixEventNames[$class])) {
-            if (($pos = strrpos($class, '\\')) !== false) {
-                $class = substr($class, $pos);
+        if ($this->modelClass === null) {
+            $ref = new \ReflectionClass($this);
+            $ns = $ref->getNamespaceName();
+            if (($pos = strrpos($ns, '\\')) !== false) {
+                $this->modelClass = substr($ns, 0, $pos) . '\\' . $ref->getShortName();
+            } else {
+                throw new InvalidConfigException(get_class($this) . '::$modelClass must be set.');
             }
-            static::$_prefixEventNames[$class] = 'e_' . Inflector::camel2id($class);
         }
-
-        return static::$_prefixEventNames[$class];
+        if ($this->prefixEventName === null) {
+            $pos = strrpos($this->modelClass, '\\');
+            $name = $pos !== 0 ? substr($this->modelClass, $pos + 1) : $this->modelClass;
+            $this->prefixEventName = 'e_' . Inflector::camel2id($name);
+        }
     }
 
     /**
@@ -90,18 +73,18 @@ class Api
      *
      * @return ActiveRecord
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model ActiveRecord */
-        $model = $model ? : static::createNewModel();
-        static::trigger('_create', [$model]);
+        $model = $model ? : $this->createNewModel();
+        $this->fire('_create', [$model]);
         $model->load($data, '');
         if ($model->save()) {
-            static::trigger('_created', [$model]);
+            $this->fire('_created', [$model]);
 
             return $model;
         } else {
-            return static::processOutput(false, $model);
+            return $this->processOutput(false, $model);
         }
     }
 
@@ -112,18 +95,18 @@ class Api
      * @param  ActiveRecord $model
      * @return ActiveRecord
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         /* @var $model ActiveRecord */
-        $model = $model ? : static::findModel($id);
-        static::trigger('_update', [$model]);
+        $model = $model ? : $this->findModel($id);
+        $this->fire('_update', [$model]);
         $model->load($data, '');
         if ($model->save()) {
-            static::trigger('_updated', [$model]);
+            $this->fire('_updated', [$model]);
 
             return $model;
         } else {
-            return static::processOutput(false, $model);
+            return $this->processOutput(false, $model);
         }
     }
 
@@ -133,13 +116,13 @@ class Api
      * @param  ActiveRecord $model
      * @return boolean
      */
-    public static function delete($id, $model = null)
+    public function delete($id, $model = null)
     {
         /* @var $model \yii\db\ActiveRecord */
-        $model = $model ? : static::findModel($id);
-        static::trigger('_delete', [$model]);
+        $model = $model ? : $this->findModel($id);
+        $this->fire('_delete', [$model]);
         if ($model->delete() !== false) {
-            static::trigger('_deleted', [$model]);
+            $this->fire('_deleted', [$model]);
 
             return true;
         } else {
@@ -151,10 +134,11 @@ class Api
      * Create model
      * @return ActiveRecord
      */
-    public static function createNewModel()
+    public function createNewModel()
     {
-        return Yii::createObject(static::modelClass());
+        return Yii::createObject($this->modelClass);
     }
+
     /**
      * Returns the data model based on the primary key given.
      * If the data model is not found, a 404 HTTP exception will be raised.
@@ -166,10 +150,10 @@ class Api
      * @return ActiveRecord      the model found
      * @throws NotFoundException if the model cannot be found
      */
-    public static function findModel($id, $throwException = true)
+    public function findModel($id, $throwException = true)
     {
         /* @var $modelClass ActiveRecord */
-        $modelClass = static::modelClass();
+        $modelClass = $this->modelClass;
         $keys = $modelClass::primaryKey();
         if (count($keys) > 1) {
             $values = explode(',', $id);
@@ -181,7 +165,7 @@ class Api
         }
 
         if (isset($model)) {
-            static::trigger('_find', [$model]);
+            $this->fire('_find', [$model]);
 
             return $model;
         } elseif ($throwException) {
@@ -196,8 +180,8 @@ class Api
      * @param string $name
      * @param array  $params
      */
-    public static function trigger($name, $params = [])
+    public function fire($name, $params = [])
     {
-        Yii::$app->trigger(static::prefixEventName() . $name, new Event($params));
+        Yii::$app->trigger($this->prefixEventName . $name, new Event($params));
     }
 }

@@ -14,16 +14,17 @@ use yii\helpers\ArrayHelper;
  */
 class Transfer extends \core\base\Api
 {
+    /**
+     *
+     * @var string 
+     */
+    public $modelClass = 'core\inventory\models\Transfer';
 
-    public static function modelClass()
-    {
-        return MTransfer::className();
-    }
-
-    public static function prefixEventName()
-    {
-        return 'e_transfer';
-    }
+    /**
+     *
+     * @var string 
+     */
+    public $prefixEventName = 'e_transfer';
 
     /**
      *
@@ -32,19 +33,19 @@ class Transfer extends \core\base\Api
      * @return type
      * @throws \Exception
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');
 
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('transferDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('transferDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -55,25 +56,25 @@ class Transfer extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = false;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');
 
         if (!isset($data['details']) || $data['details'] !== []) {
-            static::trigger('_update', [$model]);
+            $this->fire('_update', [$model]);
             $success = $model->save();
             if (!empty($data['details'])) {
                 $success = $model->saveRelated('transferDtls', $data, $success, 'details');
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('transferDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -84,7 +85,7 @@ class Transfer extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -95,40 +96,40 @@ class Transfer extends \core\base\Api
      * @return mixed
      * @throws \Exception
      */
-    public static function release($id, $data = [], $model = null)
+    public function release($id, $data = [], $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = true;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MTransfer::STATUS_ISSUE;
-        static::trigger('_release', [$model]);
+        $this->fire('_release', [$model]);
 
         if (!empty($data['details'])) {
             $transferDtls = ArrayHelper::index($model->transferDtls, 'id_product');
-            static::trigger('_release_head', [$model]);
+            $this->fire('_release_head', [$model]);
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product'];
                 $detail = $transferDtls[$index];
                 $detail->scenario = MTransfer::SCENARIO_RELEASE;
                 $detail->load($dataDetail, '');
                 $success = $success && $detail->save();
-                static::trigger('_release_body', [$model, $detail]);
+                $this->fire('_release_body', [$model, $detail]);
                 $transferDtls[$index] = $detail;
             }
             $model->populateRelation('transferDtls', array_values($transferDtls));
             if ($success) {
-                static::trigger('_release_end', [$model]);
+                $this->fire('_release_end', [$model]);
             }
         }
         if ($success && $model->save()) {
-            static::trigger('_released', [$model]);
+            $this->fire('_released', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -139,19 +140,19 @@ class Transfer extends \core\base\Api
      * @return mixed
      * @throws \Exception
      */
-    public static function receive($id, $data = [], $model = null)
+    public function receive($id, $data = [], $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = true;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MTransfer::STATUS_ISSUE;
-        static::trigger('_receive', [$model]);
+        $this->fire('_receive', [$model]);
 
         if (!empty($data['details'])) {
             $transferDtls = ArrayHelper::index($model->transferDtls, 'id_product');
-            static::trigger('_receive_head', [$model]);
+            $this->fire('_receive_head', [$model]);
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product'];
                 if (isset($transferDtls[$index])) {
@@ -166,21 +167,21 @@ class Transfer extends \core\base\Api
                 $detail->scenario = MTransfer::SCENARIO_RECEIVE;
                 $detail->load($dataDetail, '');
                 $success = $success && $detail->save();
-                static::trigger('_receive_body', [$model, $detail]);
+                $this->fire('_receive_body', [$model, $detail]);
                 $transferDtls[$index] = $detail;
             }
             $model->populateRelation('transferDtls', array_values($transferDtls));
             if ($success) {
-                static::trigger('_receive_end', [$model]);
+                $this->fire('_receive_end', [$model]);
             }
         }
         if ($success && $model->save()) {
-            static::trigger('_received', [$model]);
+            $this->fire('_received', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -191,29 +192,29 @@ class Transfer extends \core\base\Api
      * @return mixed
      * @throws \Exception
      */
-    public static function complete($id, $data = [], $model = null)
+    public function complete($id, $data = [], $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = true;
         $model->scenario = MTransfer::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MTransfer::STATUS_RECEIVE;
-        static::trigger('_complete', [$model]);
+        $this->fire('_complete', [$model]);
         $transferDtls = ArrayHelper::index($model->transferDtls, 'id_product');
         if (!empty($data['details'])) {
-            static::trigger('_complete_head', [$model]);
+            $this->fire('_complete_head', [$model]);
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product'];
                 $detail = $transferDtls[$index];
                 $detail->scenario = MTransfer::SCENARIO_COMPLETE;
                 $detail->load($dataDetail, '');
                 $success = $success && $detail->save();
-                static::trigger('_complete_body', [$model, $detail]);
+                $this->fire('_complete_body', [$model, $detail]);
                 $transferDtls[$index] = $detail;
             }
             $model->populateRelation('transferDtls', array_values($transferDtls));
-            static::trigger('_complete_end', [$model]);
+            $this->fire('_complete_end', [$model]);
         }
         $complete = true;
         foreach ($transferDtls as $detail) {
@@ -223,11 +224,11 @@ class Transfer extends \core\base\Api
             $model->addError('details', 'Not balance');
         }
         if ($success && $complete && $model->save()) {
-            static::trigger('_completed', [$model]);
+            $this->fire('_completed', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

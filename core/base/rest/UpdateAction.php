@@ -1,9 +1,8 @@
 <?php
 
-namespace rest\base;
+namespace core\base\rest;
 
 use Yii;
-use yii\web\ServerErrorHttpException;
 
 /**
  * Description of UpdateAction
@@ -16,10 +15,9 @@ class UpdateAction extends Action
     public function run($id)
     {
         /* @var $model \yii\db\ActiveRecord */
-        $helperClass = $this->helperClass;
         try {
             $transaction = Yii::$app->db->beginTransaction();
-            $model = $helperClass::update($id, Yii::$app->getRequest()->getBodyParams());
+            $model = $this->api->update($id, Yii::$app->getRequest()->getBodyParams());
             if (!$model->hasErrors()) {
                 $transaction->commit();
             } else {

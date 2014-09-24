@@ -1,6 +1,6 @@
 <?php
 
-namespace rest\base;
+namespace core\base\rest;
 
 /**
  * Description of Serializer

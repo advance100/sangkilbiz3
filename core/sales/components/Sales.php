@@ -15,20 +15,16 @@ class Sales extends \core\base\Api
 {
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MSales::className();
-    }
+    public $modelClass = 'core\sales\models\Sales';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function prefixEventName()
-    {
-        return 'e_sales';
-    }
+    public $prefixEventName = 'e_sales';
 
     /**
      *
@@ -37,19 +33,19 @@ class Sales extends \core\base\Api
      * @return \core\sales\models\Sales
      * @throws \Exception
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MSales */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MSales::SCENARIO_DEFAULT;
         $model->load($data, '');
-        static::trigger('_create', [$model]);
+        $this->fire('_create', [$model]);
         if (!empty($post['details'])) {
             $success = $model->save();
             $success = $model->saveRelated('salesDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('salesDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -60,7 +56,7 @@ class Sales extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -71,14 +67,14 @@ class Sales extends \core\base\Api
      * @return \core\sales\models\Sales
      * @throws \Exception
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = false;
         $model->scenario = MSales::SCENARIO_DEFAULT;
         $model->load($data, '');
-        static::trigger('_update', [$model]);
+        $this->fire('_update', [$model]);
 
         if (!isset($data['details']) || $data['details'] !== []) {
             $success = $model->save();
@@ -86,7 +82,7 @@ class Sales extends \core\base\Api
                 $success = $model->saveRelated('salesDtls', $data, $success, 'details');
             }
             if ($success) {
-                static::trigger('_updated', [$model]);
+                $this->fire('_updated', [$model]);
             } else {
                 if ($model->hasRelatedErrors('salesDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -97,7 +93,7 @@ class Sales extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
@@ -108,29 +104,29 @@ class Sales extends \core\base\Api
      * @return mixed
      * @throws \Exception
      */
-    public static function release($id, $data = [], $model = null)
+    public function release($id, $data = [], $model = null)
     {
-        $model = $model ? : static::findModel($id);
+        $model = $model ? : $this->findModel($id);
 
         $success = true;
         $model->scenario = MSales::SCENARIO_DEFAULT;
         $model->load($data, '');
         $model->status = MSales::STATUS_RELEASE;
-        static::trigger('_release', [$model]);
+        $this->fire('_release', [$model]);
         $salesDtls = ArrayHelper::index($model->salesDtls, 'id_product');
         if (!empty($data['details'])) {
-            static::trigger('_release_head', [$model]);
+            $this->fire('_release_head', [$model]);
             foreach ($data['details'] as $dataDetail) {
                 $index = $dataDetail['id_product'];
                 $detail = $salesDtls[$index];
                 $detail->scenario = MSales::SCENARIO_RELEASE;
                 $detail->load($dataDetail, '');
                 $success = $success && $detail->save();
-                static::trigger('_release_body', [$model, $detail]);
+                $this->fire('_release_body', [$model, $detail]);
                 $salesDtls[$index] = $detail;
             }
             $model->populateRelation('salesDtls', array_values($salesDtls));
-            static::trigger('_release_end', [$model]);
+            $this->fire('_release_end', [$model]);
         }
         $allReleased = true;
         foreach ($salesDtls as $detail) {
@@ -140,11 +136,11 @@ class Sales extends \core\base\Api
             $model->status = MSales::STATUS_RELEASED;
         }
         if ($success && $model->save()) {
-            static::trigger('_released', [$model]);
+            $this->fire('_released', [$model]);
         } else {
             $success = false;
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 }

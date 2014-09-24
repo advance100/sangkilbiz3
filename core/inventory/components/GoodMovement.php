@@ -15,20 +15,16 @@ class GoodMovement extends \core\base\Api
 {
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function modelClass()
-    {
-        return MGoodMovement::className();
-    }
+    public $modelClass = 'core\inventory\models\GoodMovement';
 
     /**
-     * @inheritdoc
+     *
+     * @var string 
      */
-    public static function prefixEventName()
-    {
-        return 'e_good-movement';
-    }
+    public $prefixEventName = 'e_good-movement';
 
     /**
      *
@@ -36,19 +32,19 @@ class GoodMovement extends \core\base\Api
      * @param  \core\inventory\models\GoodMovement $model
      * @return \core\inventory\models\GoodMovement
      */
-    public static function create($data, $model = null)
+    public function create($data, $model = null)
     {
         /* @var $model MGoodMovement */
-        $model = $model ? : static::createNewModel();
+        $model = $model ? : $this->createNewModel();
         $success = false;
         $model->scenario = MGoodMovement::SCENARIO_DEFAULT;
         $model->load($data, '');
         if (!empty($data['details'])) {
-            static::trigger('_create', [$model]);
+            $this->fire('_create', [$model]);
             $success = $model->save();
             $success = $model->saveRelated('goodMovementDtls', $data, $success, 'details');
             if ($success) {
-                static::trigger('_created', [$model]);
+                $this->fire('_created', [$model]);
             } else {
                 if ($model->hasRelatedErrors('goodMovementDtls')) {
                     $model->addError('details', 'Details validation error');
@@ -59,14 +55,14 @@ class GoodMovement extends \core\base\Api
             $model->addError('details', 'Details cannot be blank');
         }
 
-        return static::processOutput($success, $model);
+        return $this->processOutput($success, $model);
     }
 
     /**
      *
      * @throws NotSupportedException
      */
-    public static function update($id, $data, $model = null)
+    public function update($id, $data, $model = null)
     {
         throw new NotSupportedException();
     }
@@ -75,7 +71,7 @@ class GoodMovement extends \core\base\Api
      *
      * @throws NotSupportedException
      */
-    public static function delete($id, $model = null)
+    public function delete($id, $model = null)
     {
         throw new NotSupportedException();
     }
