@@ -9,6 +9,7 @@ use core\purchase\models\Purchase;
 use core\sales\models\Sales;
 use yii\base\UserException;
 use core\inventory\models\GoodMovement;
+use core\inventory\models\GoodMovementDtl;
 
 /**
  * Description of Invoice
@@ -138,13 +139,16 @@ class Invoice extends \core\base\Api
                 ])->column();
         $new = array_diff($received, $invoiced);
         $values = GoodMovement::find()
-                ->select(['{{%good_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
-                ->joinWith('goodMovementDtls')
+                ->select(['hdr.id_movement', 'jml' => 'sum(dtl.qty*dtl.trans_value)'])
+                ->from(GoodMovement::tableName() . ' hdr')
+                ->joinWith(['goodMovementDtls' => function($q) {
+                    $q->from(GoodMovementDtl::tableName() . ' dtl');
+                }])
                 ->andWhere([
-                    '{{%good_movement}}.type_reff' => GoodMovement::TYPE_PURCHASE,
-                    '{{%good_movement}}.id_reff' => $new
+                    'hdr.type_reff' => GoodMovement::TYPE_PURCHASE,
+                    'hdr.id_reff' => $new
                 ])
-                ->groupBy('{{%good_movement}}.id_movement')
+                ->groupBy('hdr.id_movement')
                 ->indexBy('id_movement')
                 ->asArray()->all();
 
@@ -215,13 +219,16 @@ class Invoice extends \core\base\Api
                 ])->column();
         $new = array_diff($released, $invoiced);
         $values = GoodMovement::find()
-                ->select(['{{%good_movement}}.id_movement', 'jml' => 'sum(qty*trans_value)'])
-                ->joinWith('goodMovementDtls')
+                ->select(['hdr.id_movement', 'jml' => 'sum(dtl.qty*dtl.trans_value)'])
+                ->from(GoodMovement::tableName() . ' hdr')
+                ->joinWith(['goodMovementDtls' => function($q) {
+                    $q->from(GoodMovementDtl::tableName() . ' dtl');
+                }])
                 ->where([
-                    '{{%good_movement}}.type_reff' => GoodMovement::TYPE_SALES,
-                    '{{%good_movement}}.id_reff' => $new
+                    'hdr.type_reff' => GoodMovement::TYPE_SALES,
+                    'hdr.id_reff' => $new
                 ])
-                ->groupBy('{{%good_movement}}.id_movement')
+                ->groupBy('hdr.id_movement')
                 ->indexBy('id_movement')
                 ->asArray()->all();
 
